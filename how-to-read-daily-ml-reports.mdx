@@ -1,0 +1,73 @@
+---
+title: "How to Read Daily ML Reports"
+---
+
+Promoted.ai continuously generates multiple models for optimizing your search, feed, promotions, and ads. Every day, Promoted generates several reports to let you know that the system is still working and to show how optimization systems are continuously improving.
+
+The four most common use cases for these reports are:
+
+* To verify that optimization has started and is continuing to run
+* To monitor that there is no sudden change in metrics or unusual behavior like a model failing to update for a long period of time, indicating a potential system failure
+* To show which features are most important for driving optimization performance and if these features have suddenly changed recently. A sudden change could indicate a system failure.
+* If newly added features are beginning to contribute to driving optimization performance and if this impact is increasing over time. This verifies that new feature addition was successful.
+
+### Shared Slack Channel for Model Training Notifications
+
+Promoted creates a shared slack channel for daily model updates and feature reports. You can directly respond to these messages to raise them to Promoted's or your own team's attention. There are two types of messages in this channel:
+
+* **Daily Model Statistics**: numeric model quality statistics computed from offline evaluation about the latest model
+* **Daily Feature Reports**: links to spreadsheets describing what features were seen and used in which models, how important these features were, and if these feature importances are changing over time.
+
+"Daily model statistics" looks like Figure 1\. It shows:
+
+**\[SUMMARY\] Release Decisions**
+
+Promoted has trained new click and post-click conversion models. If two estimates of model performance for the new model exceed the current production model, then the production model is "Updated." This happens automatically when both the AUC and NCE tests succeed. It is common that several days pass before a model is updated due to ordinary variance, selection bias, and random chance. However, if a model does not update after a week or more, or if the new model dramatically outperforms or underperforms the current production model (+/-1%), then an additional investigation may be warranted, reach out to Promoted for guidance. 
+
+**\[PERFORMANCE\] Per-Day Model Stats**
+
+Promoted uses a variety of machine learning metrics to estimate model health. Promoted uses these metrics to look for major differences between models or evaluation days that could indicate a system regression. Generally, non-data scientists do not need to worry about this section.
+
+**Daily Feature Report Links**
+
+When new models are trained, new feature reports are generated. These reports are always generated with the latest daily model, even if the latest daily model was not published to production. See Figure 2\. These reports show the latest feature importances and how they have changed over time. The three reports are:
+
+* **Descriptive Feature Importance**: A simplified, unified report that best answers "what features drive model performance overall" in an intelligible way. Excludes item engagement features to help show the importance of content features that are otherwise made redundant by item engagement features.
+* **Debug Feature Importance**: A more technical report that shows feature importance for all features for all models. More useful for engineering and debugging.
+* **Feature Coverage Report**: Statistics of features used in the models.
+
+### Understanding Feature Importance Reports
+
+See Figures 4 and 5 for examples of Feature Importance Reports. Feature Importance Reports are Google Spreadsheets and have all the features of an ordinary Google spreadsheet: copy, share, comment, use, and edit like any other spreadsheet. Spreadsheets are saved in a shared Google Drive directory that you can share with your team.
+
+"Importance" is a heuristic for how much prediction results are influenced by a particular feature. "Importance" is computed using [GBDT](https://inria.github.io/scikit-learn-mooc/python%5Fscripts/ensemble%5Fgradient%5Fboosting.html), a popular non-linear ML algorithm. We use the "Total Gain" metric; other importance metrics are in another tab in the Debug report. Technically, Promoted does not directly use GBDT in production models except for very small customers, although depending on your data size, we may use one or several GBDTs as automated feature transformations. Promoted uses neural networks in production.
+
+Some features do not explain ranking performance by themselves. For example, "device type" is constant for all items on the same search page, so it is unlikely to affect search rankings much. Instead, some features capture bias in labels so that other features can be more useful.
+
+Features are grouped by the feature source. You can expand or collapse a group of features for easier intelligibility.
+
+* **Promoted.ai:** Features generated by Promoted.ai's systems, like counter features and personalization
+* **User:** Features derived from the User CMS system
+* **Content:** Features derived from the Item CMS system
+* **Request:** Features derived from information passed in the Delivery SDK on Request, Request.Properties, or Insertion.Properties
+* **Custom-built:** Special features that Promoted can custom-build for some customers
+
+![Sample Model Stats](/images/634f8603bb51ca5b3eea9a5e_Sample%20model%20reports%202.png)
+
+Figure 1: Example Daily Model Statistics
+
+![Sample Model Reports](/images/634f8838df9f12bd96b6a43b_Daily%20model%20reports.png)
+
+Figure 2: Daily Feature Reports
+
+![Sample Feature Categories](/images/634f896c1b32fea9b732a47f_feature%20categories.png)
+
+Figure 3: Top-level feature categories in the Descriptive Feature Importance report
+
+![Sample Item importance](/images/634f8894df9f12634eb6a784_example%20features%20item%20cms.png)
+
+Figure 4: Expansion of the "Content" feature category, which are features provided by the customer in the Item CMS system.
+
+![Sample Promoted Features](/images/634f88b3cbcc1602651b7d44_example%20features%20promoted.png)
+
+Figure 5: Expansion of the "Promoted.ai" feature category, which are features generated by Promoted.ai automatically

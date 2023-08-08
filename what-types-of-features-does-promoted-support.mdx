@@ -1,0 +1,30 @@
+---
+title: "Types of ML Features Supported"
+---
+
+Promoted supports many different Feature types to make recommendations. Here, we list the major Feature Domains, provide some examples, and describe how to send these features to Promoted. The top domains are:
+
+## Content Item features
+
+Content item features are stable properties of the item shown. These can be attributes like color, a list of labeling tags, media like images, or free text like a title or description.
+
+## User features
+
+User features are stable properties of the user viewing the content. The user may be anonymous, in which case there are no or limited user features. User features can be user attributes like age and gender, lists of interests or behaviors that may be computationally inferred, or user-provided settings.
+
+## Context features
+
+Context features are properties about where the items will be shown and to whom. For example, a search query, the page address, the mobile device type, geographic location, or time.
+
+## Interaction features
+
+Interaction features require the intersection between two or more domains. Interaction features tend to be the most powerful features in scoring (item, user, context) matches. Domain intersections include:
+
+* **(Item x Context)**: query match or relevance scores
+* **(Item x User)**: personalization scores, past user history with this item, collaborative filtering
+* **(Context x User)**: search filters, home feed categories
+* **(User x Item x Context)**: other recommendation models
+
+## Integration
+
+See [How to send features to Promoted?](/docs/how-to-send-features-to-promoted) for integration details.

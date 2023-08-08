@@ -1,0 +1,52 @@
+---
+title: "Sending Engagement Signals"
+description: "Goal: Promoted wants to rank using engagement signals (impressions and actions)"
+---
+
+## Goal
+
+Promoted uses Engagement signals to optimize your rankings.
+
+## Two main integration options
+
+### 1\. Proxy through your domain.
+
+Forward engagement signals to your a proxy endpoint in your domain. For web, Promoted encourages these signals to either go through your server as a proxy or using a special DNS record so web browsers can avoid using 3rd party cookies and HTTP requests.
+
+![300](/images/c88197f-engagement2.svg "engagement2.svg") 
+
+### 2\. Call Promoted's APIs directly from Mobile.
+
+![300](/images/2983a59-engagement3.svg "engagement3.svg") 
+
+## Impressions
+
+Promoted's Impression data model is pretty simple:
+
+* A user identifier like logUserId.
+* Either Insertion ID or Content ID so Promoted can join the Impression with backing Insertion.
+* Timing information.
+
+Promoted provides [SDKs](https://www.promoted.ai/developers) for tracking impressions on web, iOS and Android.
+
+## Actions
+
+(User) Action include user-initiated behaviors like navigating, liking, sharing, checking out and purchasing. 
+
+Our Action data model is also pretty simple:
+
+* A user identifier like logUserId.
+* Either Insertion ID or Content ID so Promoted can join the Impression with backing Insertion.
+* Custom properties depending on the type of Action. E.g. shopping cart information. It's useful to attach properties that might help with debugging or stating your goal. If you want to pass a Feature for our machine learning models, prefer to pass them on the Request and Insertion .
+
+For more important actions (like purchase complete), it might make sense to log these directly from your server to minimize the risk of bad actors manipulating the log records.
+
+If you have an Action that is not in our [ActionType list](https://github.com/promotedai/schema/blob/a0d1208e7d073969dc7d09422bcfb52d8823f3c4/proto/event/event.proto#L386), let Promoted know. 
+
+## SDKs
+
+Promoted provides [Client Metrics Libraries](https://www.promoted.ai/developers) and a Web Integration Guide to help. This includes impression tracking libraries.
+
+## Promoted's Data Infrastructure
+
+Promoted does the work of joining the log records together and making them useful. You code does not need to join together Insertions, Impressions and Actions.

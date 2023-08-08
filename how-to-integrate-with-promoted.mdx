@@ -1,0 +1,39 @@
+---
+title: "How to integrate with Promoted?"
+sidebarTitle: "Overview"
+description: "This guide shows you how to integrate your platform with Promoted."
+---
+
+![](/images/Integration.webm)
+
+## Meet with the Promoted team to discuss your goals and requirements.
+
+This will take about 30 minutes. Please come prepared with information about:
+
+* Your goal related to Promoted.
+* Technology details like your cloud providers, geo regions, programming languages.
+* Details about the queries that Promoted will rank. E.g. Query volume.
+
+Promoted will then setup your environment.
+
+## Log your data to Promoted.
+
+There are three main data integration points with Promoted.
+
+1. [Log your existing rankings to Promoted.](/docs/ranking-requests)
+
+In your API server at the end of your `listItem` call, send Promoted your existing rankings and data features on the Request.
+
+1. [Log your impressions and actions to Promoted.](/docs/how-to-your-web-events-with-promoted-metrics)
+
+Promoted has client libraries for logging Impressions (if items are actually visible) for web, iOS and Android. Promoted uses these engagement signals as both features and labels in our machine learning models.
+
+1. [Log your content details to Promoted.](/docs/sending-content-details)
+
+This can be used to log stable item and user data to Promoted. This helps your ranking call to Promoted's Delivery API to execute faster.
+
+## Rank your items using Promoted
+
+1. [Rank your items using Promoted.](/docs/ranking-requests)
+
+The previous `Log your existing rankings to Promoted` is changed to a blocking, rank mode. This can be launched as an experiment for safety

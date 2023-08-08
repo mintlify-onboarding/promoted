@@ -1,0 +1,54 @@
+---
+title: "Sending Engagements from your server"
+---
+
+Your servers can log records using Promoted's Metrics API. The [Metrics API accepts LogRequest proto messages as JSON HTTP requests](https://github.com/promotedai/schema/search?q=%22message+LogRequest%22).
+
+This is useful when:
+
+* Logging purchase actions securely from your server.
+* If you are trying to reuse existing log streams. Promoted recommends using our client-side SDKs directly (includes better utilities and less likely to have errors).
+
+Here's an example for logging a purchase to Promoted. The [LogRequest message](https://github.com/promotedai/schema/search?q=%22message+LogRequest%22) supports batch logging records.
+
+Shell
+
+`echo '{  
+  "userInfo": {  
+    "logUserId": "0ea9657c-bd64-4709-9cc0-fbbcdd8d9f43",
+    "userId": "user1"
+  },  
+  "action": [  
+    {  
+      "actionId": "b59b77c7-a55a-4f01-91b5-58a3d4e36876",  
+      "timing": {
+        "clientLogTimestamp": 1641038400000
+      },
+      "actionType": "PURCHASE",
+      "insertionId": "b59b77c7-a55a-4f01-91b5-58a3d4e36876",
+      "contentId": "123",
+      "impressionId": "cb97da40-1c56-45fc-b8c5-c525c384ae48",
+      "cart": {
+        "contents:" [
+          {
+            "contentId": "abc",
+            "quantity": 1,
+            "pricePerUnit": {
+              "currencyCode": "USD",
+              "amountMicros":  10000000
+            }
+          }
+        ]
+      }
+    }
+  ]  
+}' > /tmp/action.json
+
+curl -H "Content-Type: application/json" \
+    -H "x-api-key: yourapikey" --data "@/tmp/impression.json" http://www.promoted.ai/log
+`
+
+In this example:
+
+* `logUserId` is the anonymous user ID that matches the other log records. Usually this needs to be plumbed through more code paths.
+* `amountMicros` is the currency amount (e.g. `$`s) multiplied by 1 million. This let's us keep money values as longs.

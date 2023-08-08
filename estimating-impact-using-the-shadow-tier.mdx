@@ -1,0 +1,69 @@
+---
+title: "Estimating Impact using the Shadow Tier"
+description: "Offline impact estimation in an authentic online environment"
+---
+
+Customers sometimes want to evaluate the benefits, costs, and risks associated with the Promoted software with limited resources before committing to a larger investment. Here, we describe the capabilities of the Shadow Tier system, how it can be used to estimate benefits, costs, and risks without changing the end-user experience, and provides options for leadership to choose the next steps in the evaluation process.
+
+### Shadow Tier
+
+Promoted includes a “Shadow Tier” as part of our standard integration process using our MIT-licensed open-source SDKs and full-service integration support ([Explainer Video](https://www.promoted.ai/videos/integrating-promoted-ai)) ([Developers](https://www.promoted.ai/developers)). The Shadow Tier is designed to estimate value, costs, and infrastructure loads in a safe yet true production environment without risking any user experience impact. Furthermore, gradual user rollout and production A/B user testing and deployment are seamless from the Shadow Tier: simply set a %-deployment parameter. Shadow Tier is the fastest, safest, most well-supported, and most realistic way to test and evaluate hosted Promoted systems. It has been deployed across multiple complex systems representing billions of dollars of GMV.
+
+Briefly, the Shadow Tier is the real Promoted hosted system, but instead of waiting on the Promoted Delivery response and using the Promoted response to change the user experience as in full, deployed production, the Promoted response is “ignored” for optional asynchronous logging. Shadow Tier can be used in our standard integration on unified ads + organic or ads only. One cost of the Shadow Tier is that it requires code changes to the customer's code, which Promoted provides as engineering consulting services provided by with ex-Facebook and ex-Google staff+ ads engineers at no additional cost to our customers.
+
+### Offline Data Analysis
+
+An alternative method of evaluation estimation is to analyze offline data provided by a customer. The advantage of offline data analysis is that code changes may not be required (unless any data processing or collection is required, the customer will be responsible.) The value of this offline analysis depends on the data available to and provided by the customer and is limited to estimating click and conversion model performance on artificial data. Offline data analysis cannot be used to evaluate the streaming data infrastructure, optimized serving systems, and real-time ad delivery controls like auto-bidders and pacers which would be necessary to realize the business impact in user A/B testing and live production.
+
+## Evaluation Options
+
+### A. (Organic + Ads) Evaluation in Hosted
+
+**This is Promoted’s recommended integration** for evaluation and deployment and maximally leverages Promoted’s unique abilities to combine data from ads and organic systems to improve optimization and correctly price for “self-competition” between the ads and organic systems. Send both ads and organic retrieval insertions and user events to Promoted in parallel, and Promoted will perform unified optimization and allocation using data from both ads and organic systems. “Option A. (Organic + Ads) Evaluation in Hosted” is otherwise the same in integration costs and cost scaling as “Option B. (Ads Only) Evaluation in Hosted.
+
+Promoted supports first deploying “Ads Only” and extending to “Organic + Ads” after initial integration as a future improvement.
+
+### B. (Ads Only) or (Organic Only) Evaluation in Hosted
+
+Promoted can be evaluated on only ads data and on ads insertions to estimate impact on improving the ads system in isolation from the organic system. While this does not demonstrate the full capabilities of Promtoed, it is a reasonable first starting point, requiring less coordination across different teams.
+
+Likewise, Promoted can be evaluated on only organic data and on organic insertions without ads if a platform does not include ads or to minimize initial coordination across teams.
+
+### C. Offline Analysis Only
+
+In this option, no customer source is modified by Promoted, and analysis is limited solely to the analysis of pre-existing offline data provided by the customer to Promoted as directed by the customer's data science. This option is the least well-defined because it’s not clear what data would be analyzed, how that data would be transmitted, and how such an offline analysis would evaluate the live production systems which are in large part streaming data processing systems. Nevertheless, it can be an option to demonstrate progress at a notably higher expense of the customer's internal data science resources and custom analysis work by Promoted.
+
+## Methods of Estimation and Evaluation
+
+The Promoted system returns and logs full introspection details on how bids and ranking scores are computed for all items ranked. To estimate production impact without a live user A/B test, Promoted supports the following techniques:
+
+### Sum of expected clicks, conversions, and sales
+
+Promoted estimates semantically meaningful, calibrated event probabilities for clicks and conversions with position and placement awareness. By summing the expected clicks, conversions, and sales given the Promoted-suggested allocation in the Shadow Tier traffic, the customer can estimate bid-weighted clicks, conversions, and sales that would be generated from ads and compare this estimate to the actual production system metrics to estimate lift.
+
+One disadvantage of this approach is that the models will not train on their own delivered traffic, so if the model is wrong, it will not have an opportunity to learn a correction until placed in live A/B experimentation. This can produce a modest overestimation of impact (because of the bias of over-estimation to win placements versus under-estimation). This overestimation will automatically correct itself in live production.
+
+### Simulated billable events for pacing and billing
+
+Pacing systems are feedback loop systems that react to live production context: for example, budget spent versus projected budget as a function of real-time aggregates of billable ad clicks. While shadow tier tests cannot use real user events to demonstrate the true feedback loop, Promoted can simulate billable ad clicks using a Bernoulli process on the expected clicks of the ads that Promoted recommend that should have been delivered to demonstrate that the live pacer system works as expected. From this, Promoted can estimate an improvement in ROAS for advertisers in the bid pacing system in the shadow tier.
+
+### End-to-end latency and infrastructure load estimation
+
+Because the shadow tier is the live production system that doesn’t block the user response, the shadow tier produces an accurate estimate of the latency and infrastructure load of the Promoted system in actual live production. With the shadow tier, there is no integration risk that the data used in estimation analysis will not be available or feasible in live production.
+
+### Mechanistic Model Explanation (Feature Importance Report)
+
+Promoted provides feature importance and weight estimates for different signals used to generate insertion bid components like click and post-click conversion estimates. While this does not directly estimate business impact, it provides a mechanistic explanation for why the Promotion ML system outperforms other models and quantifies the improvement using ML metrics like AUC and logloss.
+
+**Daily Feature Importance report (AutoML Feature discovery)**
+
+* [Example Feature Importance Report](https://docs.google.com/spreadsheets/d/1mzxhvoL9rkut4QOJCdqwLuke3KSKMbZJBHJqnUiMIfU/edit)
+* [Feature Importance Report Documentation](/docs/how-to-read-daily-ml-reports)
+
+## Front-end Client Logging Evaluation
+
+Promoted evaluation does not require the use of our [free, open-source client-side event logging SDKs for iOS, Android, and Web](https://www.promoted.ai/client-metrics-libraries). Use of the Promoted Client-side Metrics SDKs is optional. You may send your own client events to the server-side Promoted Metrics SDK which are generated by the customer's existing client event logging systems, e.g., via an event bus. Using the customer's own event definitions and evaluating how the Promoted client SDK can improve data quality to improve reporting correctness and sales optimization performance is a standard and supported evaluation task.
+
+In all integration configurations, Promoted does not collect any information from customers' users or about use of customers' apps or websites without that information first being sent to the customers' servers.
+
+_Promoted strongly endorses using IAB-standardized event definitions_ of insertions, impressions (visibility time and coverage), clicks (deduplication), and attributed purchases by standard attribution models (e.g., 1-day last-click) for all optimization and reporting use, especially for ads. We provide our client logging SDKs as free, MIT-licensed open-source so that data quality is never a technical blocker for use of Promoted. If you are unsure if your event definitions are IAB-standardized across ads and organic listings, Promoted supports event definition audits and alignment as improvements during or after initial Promoted evaluation and integration at no additional cost subject to our standard integration SOW.

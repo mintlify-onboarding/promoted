@@ -1,0 +1,16 @@
+---
+title: "Why another user event tracker?"
+---
+
+## Why another user event tracker?
+
+User event trackers allow systems to log User, Action (e.g. clicks) and <<glossary:Context> (e.g. the URL) data.
+
+Most available user event logging systems (e.g. Google Analytics, Mixpanel, and Snowplow) are designed for non-programmers to solve product analytic use cases. They are not designed for building and running real-time control systems. Promoted’s Metrics system is designed for this purpose.
+
+Here are some major differences that set Promoted Metrics apart:
+
+1. _Most user event logging systems require contexts to be denormalized onto each event when logging from the client._ This is very inefficient and insecure. Promoted supports real-time joining of event log and contexts ( User, <<glossary:View (Page View)>> , Request , Insertion , Impression ) in our pipeline.  
+   1. **Promoted is more efficient**. For complex systems, the contexts grow very large. Most user event logging systems encourage passing contexts to the client side. With Promoted, most of your user event logging data is sent directly from your backends (drastically improving client latencies and cost).  
+   2. **Promoted is more secure**. Relying on logging contexts from clients is dangerous. This is less of an issue for other trackers because they are not designed for real-time control systems. When using user events for real-time control systems, hackers can manipulate important data that can have a big impact on recommendations and pricing.
+2. _We collect finer log records than most user event logging systems._  Clients log events when an item is viewed long enough to count as an impression. This information is critical for building any real-time control system and is often missed with other systems.

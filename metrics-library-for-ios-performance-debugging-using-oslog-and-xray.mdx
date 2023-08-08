@@ -1,0 +1,63 @@
+---
+title: "Metrics Library for iOS Performance Debugging Using OSLog and Xray"
+description: "A step-by-step guide for using Xray programmatically."
+---
+
+## Setup
+
+In your `ClientConfig` (`PROClientConfig`) object, set the `xrayEnabled` and `osLogEnabled` flags to true (YES). This must be done before service startup. For example, this would occur in `AppDelegate.m` in the `promotedMetricsModule` method:
+
+`- (PromotedMetricsModule *)promotedMetricsModule {
+    PROClientConfig *config = [[PROClientConfig alloc] init];
+    // ...
+    config.osLogEnabled = YES;
+    config.xrayEnabled = YES;
+    PROMetricsLoggerService *service =
+        [[PROMetricsLoggerService alloc] initWithInitialConfig:config];
+    [service startLoggingServices];
+    return [[PromotedMetricsModule alloc] initWithMetricsLoggerService:service];
+}
+`
+
+## OSLog
+
+Logs will be sent to the subsystem ai.promoted with categories `MetricsLogger` and `Xray`.
+
+To view these logs in development, when attached to the Snackpass process via Xcode, look in Xcode’s console output and look for the categories above. You can filter the logs to these categories.
+
+![2474](/images/8435075-Screen_Shot_2022-03-14_at_7.44.26_PM.png "Screen Shot 2022-03-14 at 7.44.26 PM.png") 
+
+To view these logs when not running under Xcode, either on debug or production:
+
+1. If your iPhone is connected to your Mac, open the Console app and select your iPhone from the sidebar. Then hit Start in the toolbar to begin collecting logs. You can filter the logs to narrow them down.
+2. If your iPhone is not connected to a Mac, capture a [sysdiagnose](https://www.jessesquires.com/blog/2018/02/08/how-to-sysdiagnose-ios/) and inspect the logs inside the resulting file.
+
+## Xray
+
+You can access the Xray object programmatically at `MetricsLoggerService.xray`. The relevant properties on Xray are:
+
+| Properties        | Description                                                                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| totalBytesSent    | Total serialized bytes sent across network.This count is an approximation of actual network traffic. Network traffic also include HTTP headers, which are not counted in this size. |
+| totalRequestsMade | Total number of requests sent across network.                                                                                                                                       |
+| totalTimeSpent    | Total time spent in Promoted logging code.                                                                                                                                          |
+| networkBatches    | Most recent network batches.                                                                                                                                                        |
+| calls             | Flattened logging calls across networkBatches.                                                                                                                                      |
+| errors            | Flattened errors across networkBatches.                                                                                                                                             |
+
+Xray also prints a summary of metrics for the latest batch and cumulative resources used at the end of every network flush.
+
+Set a breakpoint in `MetricsLogger.handleFlushResponse()` to view the result of metrics logging calls. You can inspect the properties of Xray via the debugger via the xray property of `MetricsLogger`.
+
+`private func handleFlushResponse(data: Data?, error: Error?) {
+  osLog?.info("Logging finished")
+  if let e = error {
+    osLog?.error("flush/sendMessage: %{public}@",
+      e.localizedDescription)
+    xray?.metricsLoggerBatchResponseDidError(e)
+  }
+  xray?.metricsLoggerBatchResponseDidComplete()
+}
+`
+
+We’ll eventually add more detailed reporting of individual logging calls in Xray, via a separate flag. For now, the debugger is the best way to view this information.

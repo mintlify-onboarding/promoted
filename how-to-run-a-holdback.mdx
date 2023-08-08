@@ -1,0 +1,125 @@
+---
+title: "How to Run a Holdback Test"
+---
+
+## Overview
+
+When you want to evaluate Promoted's impact, you can run a holdback experiment. The control arm will get your original rankings. The treatment arm will get Promoted rankings. We have two common ways of running holdbacks:
+
+* You can run a holdback from your code using the Promoted server-side SDK.  
+   * Pros: This allows the control to have lower latency (no blocking call to Promoted) and it gives you easier to access to the experiment arms.  
+   * Cons: This is more coding work.
+* Promoted can run a holdback in our Delivery API where the control returns the original original rankings. This has the opposite pros/cons.
+
+## Holdback using Promoted server-side SDKs
+
+### Simple example
+
+Here is an example in Typescript. Similar code exists in the other server-side SDKs.
+
+TypeScript
+
+`` // Create a small config indicating the experiment is a 50-50 experiment where 10% of the users are activated.
+const experimentConfig = twoArmExperimentConfig5050("promoted-v1", 5, 5);
+
+async function callPromoted(
+    products: Product[],
+    userInfo: UserInfo): Promise<Insertion[]> {
+
+  // logUserId is the anonymous user id from the request.
+  const experimentMembership = twoArmExperimentMembership(userInfo.logUserId, experimentConfig);
+
+  const responsePromise = promotedClient.deliver({
+    ...
+    // If experimentActivated can be false (e.g. only 5% of users get put into an experiment) and
+    // you want the non-activated behavior to not call Delivery API, then you need to specify onlyLog to false.
+    // This is common during ramp up.  `onlyLog` can be dropped if it's always false.
+    //
+    // Example:
+    // `onlyLog: experimentMembership == undefined`
+    experiment: experimentMembership,
+    ...
+  });
+
+  return ...
+}
+ ``
+
+Here's an example using 
+
+TypeScript
+
+`` // Or use your own custom experiment memberships (e.g. `getExperimentActivationAndArm`)
+// and send Promoted:
+// (1) if the user is activated into the experiment and
+// (2) which arm to perform.
+//
+// [boolean, boolean]
+const [experimentActivated, inTreatment] = getExperimentActivationAndArm(experimentName, logUserId);
+
+// Only log if the user is activated into the experiment.
+const experimentMembership = experimentActivated
+  ? {
+      cohortId: experimentName,
+      arm: inTreatment ? 'TREATMENT' : 'CONTROL',
+    }
+  : null;
+ ``
+
+### More advanced example
+
+Here's a more complex example that supports:
+
+* Running an experiment.
+* Separate configuration for internal users.
+* Also supports skipping the experiment and only logging (or only calling Delivery API) through the same method.
+
+TypeScript
+
+`/**
+ * @param userInfo { userId, logUserId, isInternalUser }
+ * @param overrideOnlyLog If set, skips the experiment and forces the onlyLog option.
+ */
+async function callPromoted(
+    products: Product[],
+    userInfo: UserInfo,
+    overrideOnlyLog : boolean | undefined): Promise<Insertion[]> {
+
+  let onlyLog: boolean | undefined = undefined;
+  let experiment: CohortMembership | undefined = undefined;
+  if (overrideOnlyLog != undefined) {
+    onlyLog = overrideOnlyLog;
+    // Do not specify experiment when overrideOnlyLog is specified.
+  } else if (userInfo.isInternalUser) {
+    // Call Promoted Delivery API for internal users.
+    onlyLog = false;
+    // Keep experiment undefined for internal users.
+  } else {
+    // Normal external user for a call that should run as an experiment.
+    experiment = twoArmExperimentMembership(logUserId, experimentConfig);
+  }
+
+  const responsePromise = promotedClient.deliver({
+    onlyLog,
+    experiment,
+    request: {
+      userInfo,
+      ...
+    },
+    insertionPageType: InsertionPageType.Unpaged,
+  });
+
+  // Construct the map while the RPC is happening.
+  const productIdToProduct = products.reduce((map, product) => {
+      map[product.id] = {...product};
+      return map;
+  }, {});
+  const clientResponse = await responsePromise;
+  // Do not block.  Log asynchronously.
+  clientResponse.log().catch(handleError);
+  return toContents<Product>(
+      clientResponse.responseInsertions,
+      productIdToProduct
+  );
+}
+`

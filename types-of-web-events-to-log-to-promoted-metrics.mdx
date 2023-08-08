@@ -1,0 +1,33 @@
+---
+title: "Overview of user event tracking with Promoted metrics"
+---
+
+## Events and Contexts
+
+Your code needs modified to log events and contexts. These can be thought of as having a parent relationship.
+
+* **User** \= User-level data.
+* **(Page) View** \= Logged for a page view, screen view or activity view. This includes session information.
+* **Request** \= A request for a list of content. Views can have multiple Requests on it. E.g. related items, search suggested items, users who bought X also bought Y.
+* **Insertion** \= An item in a Request’s list response. These might not get viewed (Impression) by the user.
+* **Impression** \= When an item is viewed on a screen long enough to count as an impression. E.g. >50% visible for >1s.
+* **Action** \= Action taken by a user. For example, when an item is clicked on.
+
+## Logging Flow
+
+Here is an example logging flow:
+
+![1276](/images/d4190d2-Screen_Shot_2022-03-10_at_2.15.19_PM.png "Screen Shot 2022-03-10 at 2.15.19 PM.png") 
+
+Some details:
+
+* Depending on your use case, your logging flow might be different. You might log Users or Views from the client.
+* For web client instrumentation, we reuse the Snowplow JavaScript Tracker with our own custom schemas. The Snowplow Tracker has useful features like batching events and saving events to local storage. Promoted hosts a web endpoint that accepts the Snowplow HTTP format.
+* For server-side events, we recommend calling our Promoted Metrics API directly since the spec is easier and Promoted provides an SDK.
+
+## Integration Advice
+
+* Implement the code so you can incrementally push small commits. E.g. in one commit, log a simple user object. In a different commit, add more user fields.
+* Wrap the logging code in a boolean to keep logging off in production until you are ready.
+* We currently require explicit ID contexts and events. E.g. when an Insertion is logged, we need to log a Request ID with it. Most of these IDs are generated in your code base to simplify the data transfer.
+* Our helper libraries (the Snowplow JavaScript tracker and our logging libraries) are designed to work in a single environment (either browser-side or server-side). If you have code that can conditionally run on both client-side and server-side, you will need different logging code for each case.

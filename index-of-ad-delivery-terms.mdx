@@ -1,0 +1,47 @@
+---
+title: "Index of Ad Delivery Terms"
+---
+
+### Bidding
+
+**Bid**: can mean many different terms depending on the context. Typically refers to the advertiser-provided bid.
+
+**Insertion Bid**: Advertiser-provided bids must be converted to a value per insertion decision. In delivery, all bids must be converted to insertion bids because the ad delivery system can only decide whether to insert which ad. The ad delivery system cannot guarantee a user response, like a click. The conversion may be implicit. An insertion bid can be computed as p(click|insertion)\*MaxClickBid in a Cost-Per-Click ad system.
+
+**Max Bid**: An advertiser-provided bid. Sometimes called an Event Bid if bidding for another action, like a registration or a purchase, or a "Max Click Bid" if bidding for clicks. The Max Bid is the maximum the advertiser is willing to pay for the bidded action.
+
+**Complementary Bid**: Also called "quality score." The system bids for ads in addition to the advertiser to control for user experience and other platform considerations like diversity or query relevance.
+
+**Auction**: The combination of an "allocation" and a "pricing" system in ads delivery systems. There are three auctions used in practice:
+
+1. First price auction (FPA): display ads in non-decreasing bid order, the price is the bid. Easiest to understand and implement. Feels "gameable" by advertisers, resulting in their constant testing of lower bids to get lower prices.
+2. (Generalized) Second price auction (GSP): like First price auction, but the price is the bid of the next highest bid in the auction. It is harder to implement and obfuscate some of the relationships between price and bid, which can make it less obvious how lowering bids can necessarily result in lower prices for advertisers. Also permits adding a complementary bid to make poor-quality ads more expensive. GSP (generalized second price auction) pricing cannot be used without strictly ordering ads: there must be a clear "next" ad. Allocations without strict orders cannot use GSP.
+3. Vickrey–Clarke–Groves auction ([VCG](https://en.wikipedia.org/wiki/Vickrey%E2%80%93Clarke%E2%80%93Groves%5Fauction)): An analytical pricing solution that always makes the optimal bid the "true value" of winning, theoretically disincentivizing advertisers from playing with bids to try to win lower prices (this is called a dominant strategy). Advertisers don't necessarily know their "true value," so they may still continually adjust bids to see if they "like" the result. Furthermore, ad delivery systems have many repetitions and repeated VCG auctions don't have the "bid true value" property. Tricky to implement. It can be used for any allocation method.
+
+**Pricing**: How a price of an ad is computed as a function of other bids of items allocated or potentially allocated in the auction. Assuming it's valid to show that ad if it were billed the full price, the price per auction does not affect what ad is shown, so it can be computed after delivering an ad to a user asynchronously. 
+
+**Billable action**: The user event that, when it happens and is attributed to an ad, results in a fee billed to the advertiser. For example, for cost-per-click (CPC), the billable action is a click. Other common billable actions include insertions, impressions, and purchases. If the price was computed as "per insertion," then the price billed to an advertiser may need to be converted to a price "per billable action." For example, divide by the pCTR used to compute the insertion bid in the winning auction to get the billable click price. This conversion isn't necessary using a simple CPC design that doesn't convert click bids to insertion bids.
+
+**Optimized action**: The user event the ad is designed to maximize. Typically implemented as an event prediction for that action used in calculating the insertion bid. For example, if the optimized action is "conversion," then a conversion prediction is used in the insertion bid. The Optimized action is not necessarily the billable action. For example, "oCPM" ads from Facebook as optimized for conversions 
+
+**Reduction**: A method of choosing which ad, SKU, part, seller, or version of a item or ad to show when there are multiple competing choices for that same item but only one or few of them can be selected for insertion.
+
+**Trim and Filtering**: Methods of removing ads from the auction, typically before the allocation algorithm. It can technically be modeled as setting an ads' insertion bid to zero.
+
+**Ranking**: A simple allocation method of sorting by a score.
+
+**Allocation**: A more general term meaning any method of assigning ads to insertion decisions in an auction. 
+
+**Pacing**: An auto-bidder that adjusts insertion bids of an ad over time to account for opportunity costs given a limited budget for delivery.
+
+**Auto-bidding**: A more general term meaning any method of adjusting insertion bids to better achieve some objective over a sequence of auctions.
+
+**pCTR**: the probability of any click given an ad impression, or p(click|impression)
+
+**pCVR**: the probability of any conversion (typically, a sale) given an ad click or impression, or p(conversion|click) or p(conversion|impression), respectively
+
+**Insertion**: the decision by the ad server to show an ad. Not a user event.
+
+**Impression**: a user event where an ad is seen by a user
+
+**Organic**: the "non-ads" delivery system, like search or feed

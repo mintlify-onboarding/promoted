@@ -1,0 +1,27 @@
+---
+title: "How to Send Features"
+---
+
+See [What types of features does Promoted support?](/docs/what-types-of-features-does-promoted-support) for descriptions of these features.
+
+## Content Item features
+
+Send Content Item features updates asynchronously to Promoted asap using the Content API. Promoted will process these quickly and have the data available in the ranking system. Content updates can also be sent to Promoted over Delivery API. However, larger RPC sizes will hurt latency.
+
+## User features
+
+Send User features in a similar way as Content Item Features but using the User method on the Content API.
+
+## Context features
+
+Send Context features on the Request to Delivery API.
+
+## Interaction features
+
+Send Interaction features on the Request to Delivery API.
+
+> 🚧
+> 
+> Avoid sending features back on View, Impression and Action log records
+> 
+> It's a common mistake to try to send features back on these records. The Promoted Delivery system either needs to (1) already have the features pre-processed or (2) have them passed our the Delivery API call. If you have questions, please message the Promoted team.

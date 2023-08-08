@@ -1,0 +1,190 @@
+---
+title: "Ranking Requests"
+description: "Goal: Promoted wants to rank content at the end of your getContent() API call."
+---
+
+![](/images/aedb335-rank4.svg)
+
+## Goal
+
+In order to rank Content , your API server needs to call Promoted's Delivery API. A similar integration works both for (1) initial logging to Promoted, (2) running experiments and (3) fully launched with Promoted's rankings.
+
+## How to integrate?
+
+The Promoted server-side SDK is called in your API server after ranked your own list of content. [Click here for reasons about why we have a server-side SDK?](/docs/promoted-server-side-sdks) 
+
+The main inputs to the SDKs are a list of Request and a list of Insertion candidates.
+
+* **Request** \= A request for a list of content. E.g. search, feed, related items. [Protocol Buffer definition](https://github.com/promotedai/schema/blob/main/proto/delivery/delivery.proto#L17)
+* **Insertion** \= A content candidate when processing a Request. We start with more potential Request Insertions and narrow down to a subset of Response Insertions to return to the UI. Insertions are different from Impressions because Insertions might not get viewed.
+
+We have 3 server client libraries. More detailed integration instructions can be found in each SDK docs.
+
+* [Typescript](https://github.com/promotedai/promoted-ts-client)
+* [Ruby](https://github.com/promotedai/promoted-ruby-client/)
+* [Java](https://github.com/promotedai/promoted-java-delivery-client)
+
+Here is an example code block for Typescript.
+
+```typescript TypeScript
+static async promotedDeliver(req: any, products: Product[], res: Response) {
+  const responsePromise = promotedClient.deliver({
+    // onlyLog: true - if you want to only log to Promoted.
+    request: {
+      userInfo: {
+        logUserId: req.logUserId,
+      },
+      useCase: 'FEED', // Supports other enum values like 'SEARCH' and 'DISCOVER'.
+      // TODO - add `query` for the search query.
+      properties: {
+        struct: {
+          // TODO - Add user, request and context features.
+          // TODO - Add request filters.  The properties are used to generate a paging key that is used for caching.
+        }
+      },
+      insertion: products.map((product, retrievalRank) => ({
+        contentId: product.id,
+        retrievalRank,
+        properties: {
+          struct: {
+            // TODO - add user-item features here.
+            // Example: "numReviews": product.numReviews,
+          },
+        },
+      })),
+    },
+  });
+  // Construct the map while the RPC is happening.
+  const productIdToProduct = products.reduce((map, product) => {
+      map[product.id] = product;
+      return map;
+  }, {});
+  const clientResponse = await responsePromise;
+  const responseProducts = toContents<Product>(clientResponse.insertion, productIdToProduct);
+
+  // Change the response Product list to use the values in the returned Insertions.
+  sendSuccessToClient(res, { products: responseProducts) });
+  // Do not block.  Log asynchronously.
+  clientResponse.log().catch(handleError);
+}
+```
+
+## What data to pass on Request?
+
+For Promoted to use data for ranking, the data needs to either be sent into the Delivery API call or it needs to be in Promoted already (e.g. previously sent content data through Content Service). This is where interaction features (combinations of content, user and context) should be passed in.
+
+Example fields to pass in:
+
+* Your own retrieval scores.
+* Dynamic price.
+* Dynamic UI badges.
+
+See [How to send features to Promoted?](/docs/how-to-send-features-to-promoted) for explanations on how to send data to Promoted.
+
+Data that impacts ranking either needs to be passed in using:
+
+1. The Delivery API call.
+2. The Content Service (offline). This can be used for passing stable item or user data. It will
+
+It’s possible to pass stable item or user features on this call but it’s better to pass those through the Content Service to improve scale and speed.
+
+## How does paging works?
+
+When Delivery API receives a Request, the API will request to a paging key and check a database of recently (paged) response Insertion. This allows Promoted to return already paged items back to the user if they request the same pages again.
+
+Promoted creates the paging key from Request properties such as:
+
+* logUserId
+* clientInfo
+* useCase
+* searchQuery
+* blenderConfig
+* properties.
+
+> 🚧
+> 
+> If you have `Request.properties` that will change across page, contact Promoted to exclude them from the paging key
+> 
+> The default behavior is to include all `Request.properties` in the paging key. If a `Request.property` changes across pages (e.g. request timestamp), it'll change the paging key and break paging.
+
+> 🚧
+> 
+> When a new page is requested from Delivery API, Promoted will try to serve the next best recommendations to that page, regardless of the page number
+> 
+> Example:
+> 
+> * User starts their request on page 10\. Promoted will serve the top results on page 10.
+> * Then the user hops back to page 0\. Promoted will serve the next best items on page 0.
+> 
+> The results for each page are temporarily cached inside Promoted's servers.
+> 
+> If users try to share links to result lists, the items will be different for each user that tries to load the list. Each user gets their own personalized results.
+
+Promoted can customize paging behavior for your use case. E.g. how long to keep the paged results in the paging DB?
+
+### When `Request.insertion.contentId`s change across pages?
+
+Promoted has two options:
+
+1. (default) `Intersection` \- If already paged `contentId`s are not in the current`Request.insertion.contentId` list, the missing `contentId`s will be dropped.
+2. `Union` \- Already paged `contentId`s will still be returned even if they are not in `Request.insertion.contentId`s. This option can be used to grow the list of contentIds across multiple Requests.
+
+Promoted also has a setting for how long to keep recent pages. This setting defaults to around 30 minutes.
+
+### Prepaged vs Unpaged SDK option
+
+When fully launched, your code will send a large list of request content (insertions) to Promoted. We call this `unpaged`. The value `UNPAGED` must be passed into the SDK call. During the early logging mode, it's possible to log a `prepaged` list of response items to Promoted. This helps speed up integrations since your servers probably already have a paged list of items.
+
+### Sending even more request insertions
+
+Clients start by sending just the first few hundred items to Promoted.
+
+> 📘
+> 
+> Contact Promoted engineers if you want to send additional Request Insertions to Delivery API
+
+When the `union` config option is enabled, clients can send other blocks of request insertions on other calls to go beyond a few hundred request insertions.
+
+The union This tells Delivery API to consider both request insertions and already returned response insertions.
+
+Here are variables that define these:
+
+* `paging.size` \= the size of the response page.
+* `paging.offset` \= the start index of the item in the response. This is a zero-based position for all request insertions.
+* `insertionStart` \= the start index of the `Request.insertion` block inside the list of all request insertions.
+
+To simplify the code and handling falling back to the SDK, we recommend sending the `insertionStart` block that where `offset` would be in the block.
+
+#### Example 1: returning the third page of 10 items from the first block of request insertions
+
+Let's say there are 10k possible candidates (all request insertions).
+
+![](/images/7e74fef-large9999.png)
+
+Due to possible latency issues, the client only sends a subset of Request insertions on Delivery API calls (e.g. 500 request insertions).
+
+![](/images/d6249fa-small499.png)
+
+Send the following values to Promoted
+
+* `Request.insertion` \= the first 500 items.
+* `insertionStart` \= 0 = the position of `Request.insertion` in the list of all Request insertions.
+* `paging.size` \= 10 = size of the response page
+* `paging.offset` \= 20 = this is the starting index of the third page in all request insertions list.
+
+#### Example 2: items 600 to 609
+
+To get this page, we recommend sending the second block request insertions to Promoted.
+
+![](/images/11c02ae-small999.png)
+
+Send the following values to Promoted
+
+* `Request.insertion` \= the second block of 500 items.
+* `insertionStart` \= 500 = the position of this block of request insertions.
+* `paging.size` \= 10 = the size of the response page
+* `paging.offset` \= 600 = the global item position that you want to return
+
+Delivery API will keep recent response insertions in a DB and reuse them when requested. With the `union` option, new candidates will be considered for new pages.
+
+If a Delivery API call fails, the SDK will use the parameters to fetch a range from the input request insertions. For this example, the SDK will fallback to returning the `[100,109)` from the request insertions. This corresponds to the positions of `[600,609)` in the list of all possible candidates.

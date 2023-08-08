@@ -1,0 +1,43 @@
+---
+title: "Debugging Integration Issues"
+---
+
+This guide discusses common problems and how to resolve them.
+
+## Missing or incorrect `logUserId`
+
+### The Problem
+
+Promoted uses `logUserId` to create personalized recommendations. `logUserId` is also used as part of the key in the Delivery page database. If the `logUserId` is not specified, Promoted does not know how to differentiate one user from another. If the `logUserId` changes during paging, Promoted treats these as two completely different paged Requests.
+
+To be safe, when logUserId is missing, Promoted defaults to falling back to client-specific retrieval ranking. If this is an issue, please chat with Promoted's team. Promoted can walk you through alternatives and the additional information that is needed.
+
+### Likely top causes
+
+Missing `logUserId` is mostly an issue on web. Mobile apps usually initialize `logUserId` very early on.
+
+Common causes:
+
+* Race condition in web app loading and `logUserId` initialization.  
+   * Example: If the list of content is pre-loaded on the first HTTP request for the index.html and the logUserId is not initialized until after the html is executed on the browser-side.  
+   * Example: Extra async Javascript needs downloaded after page load to initialize the `logUserId`.
+* The code that creates the `logUserId` is blocked. E.g. if Segment is used to create a `logUserId`, then privacy protectors that block Segment will cause `logUserId` to not be set.
+* General coding bugs.
+
+### How will this issue be detected?
+
+Promoted tracks the rate of missing `logUserId`s. Promoted will report big changes to the "missing `logUserId` rate" to you.
+
+You might notice this internally if the items do not appear re-ranked. If `logUserId` changes in between page calls, Promoted might duplicate content across pages.
+
+### Investigation steps
+
+1. Set up logging in your code to catch when logUserIds are not specified.
+2. Audit the code flow from logUserId to Promoted SDK calls.
+3. If there are interesting dimensions that might impact the problem (e.g. device, browser, authenticated `userId`), forward the values on Delivery calls and Impression records so Promoted can compare the missing `logUserId` rates along the dimensions.
+4. See if this is an issue on the first page that a user visits vs subsequent pages.
+
+### Mitigations
+
+1. Fix race conditions and bugs in `logUserId` initialization.
+2. Sync with the Promoted team to learn about alternatives.

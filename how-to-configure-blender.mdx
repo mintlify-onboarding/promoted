@@ -1,0 +1,349 @@
+---
+title: "How to configure Blender?"
+---
+
+Blender is a Promoted's Delivery system that allows for blending of content after individual quality score predictions have been made. It can be used to force content to certain positions, prioritize content with or without certain properties and rules for how to increase diversity of results.
+
+## Blender ranks and allocates items
+
+Blender ranks and allocates items using configurable rules. 
+
+Blender can be configured to use a different ranking mechanism for items, and it can be supplied with rules to prioritize (or reject) certain items.
+
+Blender first ranks all items by calculating their scores, and then repeatedly applies rules to associate items with positions that will eventually be displayed to the end user.
+
+## High level overview of blender
+
+Blender consists of `3` parts:
+
+1. a ranking mechanism that calculates a Quality score for each item given a set of model predictions (for example, the probability of clicking on an item or buying it). This can be overwritten by supplying a quality score config that tells blender to calculate a different score using an item’s properties;
+2. a set of rules that act as item filters. A rule selects a subset of items based on their properties (for example, a rule might select items with property `animal: dog`, but not with `animal: cat`);
+3. a blending loop that uses scores and rules to assign items to positions. It uses rules to select a subset of items, and then assigns the item with highest score to the next required position.  
+A blend is complete once all positions are covered or all available items are exhausted.
+
+## Blending loop
+
+[Click here to see a flow chart of the blending loop](https://drive.google.com/file/d/1rprIRQCKs3z1mPdALYkwSrEGqjIAJr-T/view).
+
+For each position blender is trying to fill, these steps are taken to select an item:
+
+1. first, apply insert rules to select an item with the highest score;
+2. if insert rules did not yield an item:  
+   1. remove all items that don’t pass negative rules;  
+   2. then, apply positive rules to select an item from that pre-filtered subset;
+3. if still no item was selected, select any available item with the highest score.  
+After an item was allocated to a position, it is removed from the pool of available items.
+
+## Rules
+
+There are 4 types of rules:
+
+* **Positive rules** probabilistically filter and select items. They are run after negative rules and respect items rejected by those.
+* **Negative rules** probabilistically filter and reject items. Negative rules are always run before positive rules and restrict the pool of items that a positive rule can select from.
+* **Insert rules** have highest priority, force items to be allocated first, and ignore negative rules. Use insert rules like manual overrides if items with certain properties must be allocated first.
+* **Diversity rules** penalize or reward repeated allocation of similar items. They are not selection filters like the other rules, but instead lower or increase item scores: if an item was just allocated at a position, then diversity rules will influence future item selection by modifying the score of all other items that share properties with the just allocated one.
+
+#### A note about the examples below
+
+All pseudo-config shown below is simplified and for illustrative purposes only (keeping it in json5 format to stress this). The score field on each item is never sent directly to blender, but rather calculated on-the-fly using a quality score expression. See Quality scores section below for more information.
+
+### Positive rules
+
+Positive rules are filters and select a subset of items based on their properties. They can be defined with simple conditionals that test if a property exists, or if a property is greater than some constant, among others.  
+Positive rules share a lot of properties with insert rules, with the big difference that they respect items disallowed by negative rules and won’t ever allocate those, whereas insert rules ignore negative rules.
+
+#### Examples
+
+The positive rule below selects all items that are within `20.0` miles. The negative rule prevents two items from being placed next to each other if they both have a door. As positive rules are always run in tandem with negative rules, both are shown
+
+JSON
+
+`[
+    rule: "positive",
+    attribute_name: "distance_miles",
+    eval_method: {
+        type: "less_than",
+        compared_to: 20.0,
+        or_equal: true,
+    },
+         // The negative rule will be tested before the positive rule
+    rule: "negative",
+    attribute_name: "has_door",
+    min_spacing: 1,
+    eval_method: {
+        type: "bool",
+    },
+]
+`
+
+Given the items below,
+
+JSON
+
+`[
+    {
+        name: "the grotto",
+        score: 2.0,
+        properties: {
+            distance_miles: 12.0,
+            has_door: false,
+        },
+    {                                       
+        name: "the cave",                   
+        score: 3.0,                       
+        properties: {
+            distance_miles: 20.0,
+            has_door: false,
+        },
+    },                                      
+    {
+        name: "the hut",
+        score: 4.0,
+        properties: {
+            distance_miles: 10.0,
+            has_door: true,
+        },
+    },                                      
+    {
+        name: "the bungalow",
+        score: 5.0,
+        properties: {
+            distance_miles: 8.0,
+            has_door: true,
+        },
+    },                                      
+    {                                       
+        name: "the open vault",            
+        score: 8.0,                      
+        properties: {
+            distance_miles: 200.0,
+            has_door: false,
+        },
+    },
+    {                                       
+        name: "the grand hotel",            
+        score: 10.0,                      
+        properties: {
+            distance_miles: 500.0,
+            has_door: true,
+        },
+    },
+    {
+        name: "lasagna",
+        "score": 20.0,
+        "properties": { },
+    },
+]
+`
+
+if the `bungalow` was just allocated at position `1` and blender moves on to position `2`, first the negative rule is applied. Because `min_spacing` is 1, the rule rejects all items that have the property `has_door: true` (which in this case are the hut and the grand hotel).
+
+Next, the positive rule is applied, which will consider the `grotto` and the `cave` (because they are closeby), but not the `hut` and `the grand hotel` (because they were both rejected), nor the open `vault` (because it’s too far) nor lasagna (because it has no distance property).
+
+Out of those selected, blender then allocates the cave to position `2` because its score is higher than that of the hut.
+
+### Negative rules
+
+Negative rules don’t outright select items the way that positive and insert rules do, but they remove items from consideration if they don’t fulfill certain defined criteria.
+
+#### Example
+
+The negative rule defined below will ensure that two items with property `dog` can be placed next to one another.
+
+JSON
+
+`{
+    rule: "negative",
+    attribute_name: "animal",
+    min_spacing: 1,
+    eval_method: {
+        type: "equal_v2",
+        value: {
+            string: "dog",
+        },
+    },
+}
+`
+
+Given the items below,
+
+JSON
+
+`[
+    {
+        name: "barker",
+        score: 2.0,
+        properties: { animal: "dog", },
+    },
+    {
+        name: "mr snuggles",
+        score: 1.0,
+        properties: { animal: "cat", },
+    },
+    {
+        name: "blueberry",
+        score: 1.0,
+        properties: { "animal": "dog", },
+    },
+    {
+        name: "lasagna",
+        score: 20.0,
+        properties: { },
+    },
+]
+`
+
+if blender just allocated barker to position `1` and is now trying to find an item to put into position `2`, it will use the rule defined above to skip `blueberry`, because it has the `animal` property with value `dog` and there is no space between positions `1` and `2`. It will not skip mr snuggles and lasagna, because they don’t share a property with the same value.  
+Once blender moves on to fill position `3`, it will no longer skip `blueberry`, because now the negative rule no longer applies (since there is `1` position “space” between positions `1` and `3`, thus fulfilling the rule).
+
+### Insert rules
+
+Insert rules are filters and select a subset of items based on their properties. They can be defined with simple conditionals that test if a property exists, or if a property is greater than some constant, among others.
+
+#### Example
+
+The insert rule below selects all items that fulfill the condition `distance_miles <= 20.0`.
+
+JSON
+
+`{
+    rule: "insert",
+    attribute_name: "distance_miles",
+    eval_method: {
+        type: "less_than",
+        compared_to: 20.0,
+        or_equal: true,
+    },
+}
+`
+
+Given the items below,
+
+JSON
+
+`[
+    {
+        name: "the hut",
+        score: 1.0,
+        properties: { distance_miles: 10.0, },
+    },                                      
+    {                                       
+        name: "the cave",                   
+        score: 2.0,                       
+        properties: { distance_miles: 20.0, },
+    },                                      
+    {                                       
+        name: "the grand hotel",            
+        score: 10.0,                      
+        properties: { distance_miles: 500.0, },
+    },
+    {
+        name: "lasagna",
+        "score": 20.0,
+        "properties": { },
+    },
+]
+`
+
+the above insert rule will consider `the hut` and `the cave`, because they are close by, but not `the grand hotel`, because it is too far away. `lasagna` will also not be considered, because it has no distance property on which the rule can match.
+
+Blender would then select `the cave` from that subset and allocate it to the next required position, because its score is higher than that of `the hut`.
+
+### Diversity rules
+
+Diversity rules penalize the scores of subsequent items if they have common properties with an item that has just been allocated. All diversity rules will be applied in order.
+
+#### Example
+
+The below diversity rule applies to the property name animal and has a penalty multiplier of `0.5`.
+
+JSON
+
+`{
+    rule: 'diversity',
+    attribute_name: 'animal',
+    multiplier: 0.5,
+}
+`
+
+Given the items below,
+
+JSON
+
+`[
+    {
+        name: "barker",
+        score: 2.0,
+        properties: { animal: "dog" },
+    },
+    {
+        name: "mr snuggles",
+        score: 1.0,
+        properties: { animal: "cat" },
+    },
+    {
+        name: "blueberry",
+        score: 1.0,
+        properties: { animal: "dog" },
+    },
+    {
+        name: "lasagna",
+        score: 20.0,
+        properties: { },
+    },
+]
+`
+
+If `barker` was just allocated, then `blueberry` will get a score `1.0 * 0.5 = 0.5`, while `mr snuggles` and `lasagna` will keep their scores `1.0` and `20.0` (because `mr snuggles` has the property `animal: "cat"`, and because `lasagna` does not even have the animal property).
+
+## Quality scores
+
+Quality scores are the ranking mechanism used by blender. Quality scores are calculated from a very simple expression language that permits to write expressions like this:
+
+`QUALITY_SCORE := P_NAVIGATE * P_POST_CLICK_CONVERSION
+`
+
+#### Example
+
+A quality score config that define the expression above would look like this:
+
+JSON
+
+`{
+    type: "product",
+    product: [
+        {
+            type: "term",
+            name: "P_NAVIGATE",
+        },
+        {
+            type: "term",
+            name: "P_POST_CLICK_CONVERSION",
+        },
+    ],
+}
+`
+
+Given the items below:
+
+JSON
+
+`[
+    {
+        name: "the cup",
+        properties: {
+            P_NAVIGATE: 0.1,
+            P_POST_CLICK_CONVERSION: 0.05,
+        },
+    },
+    {
+        name: "the mug",
+        properties: {
+            P_NAVIGATE: 0.1,
+            P_POST_CLICK_CONVERSION: 0.8,
+        },
+    },
+]
+`
+
+The expression as defined in the quality score config would then yields the scores `0.005 = 0.1 * 0.05` for `the cup`, and `0.08 = 0.1 * 0.8` for `the mug`.

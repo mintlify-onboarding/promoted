@@ -1,0 +1,452 @@
+---
+title: "Sending Engagements on iOS"
+---
+
+[ios-metrics-sdk](https://github.com/promotedai/ios-metrics-sdk)
+
+## Summary
+
+Integration of Promoted’s metrics logging library with your iOS app will involve four steps. The implementations and risks of each step are discussed below.
+
+1. Install build dependencies.
+2. Initialize at app startup.
+3. Add click, user, and view logging.
+4. Add impression logging to restaurants, promotions, and food items.
+
+Promoted adheres to the following philosophies to mitigate risk:
+
+1. Smaller PRs whenever possible, to make review and rollback easier.
+2. Don’t merge PRs until they provide additional functionality.
+3. Adopt conventions of the surrounding code when making changes.
+4. Make no additional functionality changes to code when implementing logging, unless otherwise agreed upon.
+5. Requiring review and approval of PRs by your developers prior to merging, unless otherwise agreed upon.
+
+## Installation
+
+### Cocoapods
+
+Install the pod `PromotedAIMetricsSDK` in your Podfile. 
+
+podfile
+
+`target 'MyApp' do
+  pod 'PromotedAIMetricsSDK'
+end
+`
+
+### Swift Package Manager
+
+Add the following dependency to your Package.swift file.
+
+Swift
+
+`.package(name: "PromotedAIMetricsSDK", url: "https://github.com/promotedai/ios-metrics-sdk")
+`
+
+This will automatically install `SwiftProtobuf` and `GTMSessionFetcher` as transitive dependencies.
+
+### NPM (React Native)
+
+Add a dependency on `@promotedai/react-native-metrics` in your `package.json` file. This will in turn add Cocoapod dependencies in your iOS project. These dependencies are the same as when installing directly via Cocoapods (see above).
+
+In addition to the automated Cocoapod dependencies, we need to add the following line in your `Podfile` manually to work around a build issue.
+
+`pod 'GTMSessionFetcher/Core', '~> 1.5.0', :modular_headers => true
+`
+
+This pod is not a new dependency. It’s already included in `PromotedAIMetricsSDK`, but we need to add it to the Podfile to work around a build issue.
+
+## Initialization
+
+Although startup is inexpensive, it may involve network calls and disk IO, so you can choose when this startup occurs.
+
+> 🚧
+> 
+> If you attempt to use the Promoted logging library without configuring it, a runtime error will occur.
+
+### UIKit
+
+Start the MetricsLoggerService during your app’s initialization, before you attempt to perform any logging. You can start the service at any time you wish. A common pattern would be to do this in your AppDelegate’s `application(_:didFinishLaunchingWithOptions:)` method, but you can control the exact time of initialization by deferring this call until after your critical startup path occurs.
+
+TypeScript
+
+`func application(_ app: UIApplication, didFinishLaunchingWithOptions:...) {
+  let config = ClientConfig()
+  config.metricsLoggingURL = "https://..."
+  config.metricsLoggingAPIKey = "..."
+  self.promotedMetricsLoggerService = MetricsLoggerService(initialConfig: config)
+  // The following line does most initialization. You decide when to call it.
+  self.promotedMetricsLoggerService.startLoggingService()
+}
+`
+
+### React Native
+
+Installing our NPM dependency will require you to instantiate and configure PromotedMetricsModule, our NativeModule, at app startup. (Explicit configuration is required because of the server URL and API key.) This can be done at app startup, in your AppDelegate’s `application(_:didFinishLaunchingWithOptions:)` method.
+
+Swift
+
+`- (BOOL)application:(UIApplication *)application 
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
+                                            launchOptions:launchOptions];
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
+                                                   moduleName:@"..."
+                                            initialProperties:nil];
+}
+
+- (NSArray<id<RCTBridgeModule>> *)extraModulesForBridge:(RCTBridge *)bridge {
+  PROClientConfig *config = [[PROClientConfig alloc] init];
+  config.metricsLoggingURL = @"https://...";
+  config.metricsLoggingAPIKey = @"...";
+  config.devMetricsLoggingURL = @"https://...";
+  config.devMetricsLoggingAPIKey = @"...";
+  PROMetricsLoggerService *service =
+      [[PROMetricsLoggerService alloc] initWithInitialConfig:config];
+  [service startLoggingServices];
+  PromotedMetricsModule *module =
+      [[PromotedMetricsModule alloc] initWithMetricsLoggerService:service];
+  return @[ module ];
+}
+`
+
+Since React Native automatically initializes all NativeModules at startup, adding the Promoted dependency alone will cause `PromotedMetricsModule` to be created.
+
+> 🚧
+> 
+> We’re exploring options for clients to configure logging directly from React Native. For now, this configuration must be done in native code.
+
+## Classes
+
+Usage of these classes is primarily for UIKit-based apps. For React Native, much of the functionality of MetricsLogger and ScrollTracker are found in the PromotedMetrics module.
+
+### MetricsLoggerService
+
+Entry point to the Promoted metrics library. Configures a logging session and its associated `MetricsLogger`.
+
+Typically, instances of `MetricsLoggers` are tied to a `MetricsLoggerService`, which configures the logging environment and maintains a `MetricLogger` for the lifetime of the service. 
+
+The service also provides a facility to create `ImpressionLoggers` and `ScrollTrackers`. 
+
+#### Usage
+
+Create and configure the service when your app starts, then retrieve the `MetricsLogger` instance from the service after it has been configured. You can also create `ImpressionLogger` or `ScrollTracker` instances using the service.
+
+You may choose to make `MetricsLoggerService` a singleton, which makes its corresponding `MetricsLogger` a singleton. You may also choose to instantiate `MetricsLoggingService` and hold a reference to the instance. In either case, choose one way to create and access `MetricsLoggerService` and use it consistently in your app.
+
+You can create multiple instances of the service with different backends if desired. However, you should not create multiple services that point at the same backend.
+
+> 🚧
+> 
+> Use from main thread only.
+
+#### Example (using instance)
+
+`let service = MetricsLoggerService(initialConfig: ...)
+service.startLoggingServices()
+let logger = service.metricsLogger
+let impressionLogger = service.impressionLogger()
+let scrollTracker = service.scrollTracker(collectionView: ...)
+`
+
+#### Example (using shared service)
+
+`// Call this first before accessing the instance.
+MetricsLoggerService.startServices(initialConfig: ...)
+let service = MetricsLoggerService.shared
+let logger = service.metricsLogger
+let impressionLogger = service.impressionLogger()
+let scrollTracker = service.scrollTracker(collectionView: ...)
+`
+
+### MetricsLogger
+
+Promoted event logging interface. Use instances of `MetricsLogger` to log events to Promoted's servers. Events are accumulated and sent in batches on a timer.
+
+Typically, instances of `MetricsLogger` are tied to a `MetricsLoggerService`, which configures the logging environment and maintains a `MetricsLogger` for the lifetime of the service. See `MetricsLoggerService` for more information about the scope of the logger and the service.
+
+Events are represented as protobuf messages internally. By default, these messages are serialized to binary format for transmission over the network.
+
+#### Usage
+
+To start a logging session, first call `startSession(userID:)` or `startSessionSignedOut()` to set up the user ID and log user ID for the session. You can call either `startSession` method more than once to begin a new session with the given user ID.
+
+Use one of the `log*` methods to enqueue an event for logging. When the batching timer fires, all events are delivered to the server via the `NetworkConnection`.
+
+If you want to deliver queued events immediately, say when your app enters the background, use `flush()`. It's not necessary for clients to call `flush()` to deliver queued events. Events are automatically delivered on a timer.
+
+> 🚧
+> 
+> Use from main thread only.
+
+#### Example
+
+`let logger = service.metricsLogger
+// Sets userID and logUserID for subsequent log() calls.
+logger.startSession(userID: myUserID)
+let item = Item(name: "Stuffed Hippo", contentID: "ABCD-1234", insertionID: "XYZ")
+logger.logPurchaseAction(item: purchasedItem)
+// Resets userID and logUserID for another session.
+logger.startSession(userID: secondUserID)
+`
+
+### ImpressionLogger
+
+Provides basic impression tracking across scrolling collection views, such as `UICollectionView` or `UITableView`. Works best with views that can provide fine-grained updates of visible cells, but can also be adapted to work with views that don't.
+
+#### Usage
+
+`ImpressionLogger` provides only basic impression tracking logic that considers a view as impressed as soon as it enters the screen. For more advanced functionality, see `ScrollTracker`, which offers visibility and time thresholds.
+
+Used from React Native because RN's `SectionList` and `FlatList` provide this advanced functionality already.
+
+Clients should create an instance of `ImpressionLogger` and reference it in their view controller, then provide updates to the impression logger as the collection view scrolls or updates.
+
+#### Example
+
+TypeScript
+
+`class MyViewController: UIViewController {
+  var collectionView: UICollectionView
+  var logger: MetricsLogger
+  var impressionLogger: ImpressionLogger
+ 
+  private func content(atIndexPath path: IndexPath) -> Content? {
+    let item = path.item
+    if item >= self.items.count { return nil }
+    let myItemProperties = self.items[item]
+    return Item(properties: myItemProperties)
+  }
+
+  func viewWillDisappear(_ animated: Bool) {
+    impressionLogger.collectionViewDidHideAllContent()
+  }
+
+  func collectionView(_ collectionView: UICollectionView,
+                      willDisplay cell: UICollectionViewCell,
+                      forItemAt indexPath: IndexPath) {
+    if let content = content(atIndexPath: indexPath) {
+     impressionLogger.collectionViewWillDisplay(content: content)
+    }
+  }
+    
+  func collectionView(_ collectionView: UICollectionView,
+                      didEndDisplaying cell: UICollectionViewCell,
+                      forItemAt indexPath: IndexPath) {
+    if let content = content(atIndexPath: indexPath) {
+      impressionLogger.collectionViewDidHide(content: content)
+    }
+  }
+  func reloadCollectionView() {
+    self.collectionView.reloadData()
+    let visibleContent = collectionView.indexPathsForVisibleItems.map {
+      path in content(atIndexPath: path)
+    };
+    impressionLogger.collectionViewDidChangeVisibleContent(visibleContent)
+  }
+}
+`
+
+### ScrollTracker
+
+Tracks scrolling behavior in client apps to deliver accurate impression events.
+
+“Accurate” in this case means that the views scrolled on screen meet the following criteria.
+
+1. Ratio of view displayed on screen is at least `ClientConfig.scrollTrackerVisibilityThreshold`.
+2. (Coming later) Duration of impression is at least `ClientConfig.scrollTrackerDurationThreshold`.
+
+#### Usage
+
+See Impression Logging section for usage example. 
+
+#### Performance vs accuracy
+
+ScrollTracker works by coalescing scroll events to achieve a balance between performance and accuracy. The more often ScrollTracker processes scroll events, the more accurately impressions are tracked, but this comes at a performance cost. Although this cost is usually negligible relative to the amount of computation in most UI updates, ScrollTracker minimizes this overhead by updating at a fixed frequency rather than in response to every scroll event. This update frequency is controlled via `ClientConfig.scrollTrackerUpdateFrequency`.
+
+### ClientConfig
+
+Configuration for Promoted metrics logging library internal behavior.
+
+This class should only contain properties that apply to the Promoted logging library in general. Mechanisms that alter the way that client code calls the Promoted logging library should go in client code, external from this config.
+
+### Xray
+
+Exposes internals of Promoted metrics logging library so that clients can inspect time profiles, network activity, and contents of log messages sent to the server.
+
+Set `xrayEnabled` on the initial `ClientConfig` to enable this profiling for the session. Access the xray property on `MetricsLoggerService`.
+
+Like all profiling mechanisms, Xray incurs performance and memory overhead, so use in production should be judicious. Xray makes best effort to exclude its own overhead from its reports.
+
+Profile data from Xray is kept only in memory on the client, and not sent to Promoted's servers (as of 2021Q1).
+
+[For more info on iOS Performance Debugging Using OSLog and Xray](/docs/metrics-library-for-ios-performance-debugging-using-oslog-and-xray) 
+
+## Runtime
+
+### Performance and Energy
+
+> 🚧
+> 
+> Only use the main thread to interact with the Promoted metrics logging library.
+> 
+> The library offloads many operations to background threads automatically.
+
+#### UIKit
+
+Calls to the Promoted metrics logging library are designed to return as quickly as possible. You can call us in response to UI events, or add our listeners to your UIViews, without perceivable impact to the responsiveness of your UI.
+
+#### React Native
+
+Calls from Javascript/Typescript into the Promoted metrics logging library return asynchronously, so they should have no impact on your UI responsiveness. Behind the scenes, our library performs the majority of its work on the main thread, and offloads any intensive tasks to background threads.
+
+We recommend constructing copies of any objects that you pass to Promoted. These copies should only include the minimum set of fields required for logging. Don’t pass Javascript data model objects directly, since React Native must construct native dictionaries for these objects, and this construction can be expensive and unnecessary.
+
+## User Logging
+
+Call `startSessionAndLogUser(userID:)` or `startSessionAndLogSignedOutUser()` on `MetricsLogger`/`PromotedMetrics` to start the logging session. You can call these methods multiple times if the user changes their sign-in status.
+
+The Promoted metrics logging library will cache the last-used `logUserID` in your `NSUserDefaults` to provide a consistent `logUserID` across multiple sessions. You can configure this persistence to use a different mechanism if desired.
+
+### Action Logging
+
+Call the `log*Action` methods on `MetricsLogger`/`PromotedMetrics` to track actions. Promoted defines a series of preset action types. Each type has a corresponding method in `MetricsLogger` (eg. purchase → `logPurchaseAction`).
+
+| Action type      | Description                                         |
+| ---------------- | --------------------------------------------------- |
+| customActionType | Action that doesn't correspond to any of the below. |
+| navigate         | Navigating to details about content.                |
+| addToCart        | Adding an item to shopping cart.                    |
+| removeFromCart   | Remove an item from shopping cart.                  |
+| checkout         | Going to checkout.                                  |
+| purchase         | Purchasing an item.                                 |
+| share            | Sharing content.                                    |
+| like             | Liking content.                                     |
+| unlike           | Un-liking content.                                  |
+| comment          | Commenting on content.                              |
+| makeOffer        | Making an offer on content.                         |
+| askQuestion      | Asking a question about content.                    |
+| answerQuestion   | Answering a question about content.                 |
+| completeSignIn   | Complete sign-in.                                   |
+| completeSignUp   | Complete sign-up.                                   |
+
+Some actions require you to provide content for the action, and others do not take content. Prefer the provided methods in MetricsLogger/PromotedMetrics (instead of calling `logAction(name:type:content:)` directly) to ensure that these requirements are met at the call site.
+
+Custom action can be logged via the `logAction` method, with `customActionType`.
+
+### Impression Logging
+
+You can call `logImpression` on `MetricsLogger`/`PromotedMetrics` manually to track content impressions. For many popular usage patterns in UIKit and React Native, consider one of the more advanced methods below.
+
+#### UIKit
+
+Impression logging for `UICollectionView` is handled automatically using `ScrollTracker`. Although `ScrollTracker` is designed for use with both UIKit and React Native, we provide UIKit specializations for tracking UIScrollViews and UICollectionViews.
+
+There are two touch points to configure `ScrollTracker`.
+
+TypeScript
+
+`// First, create a ScrollTracker with the collection view.
+collectionView = UICollectionView()
+scrollTracker = service.scrollTracker(collectionView: collectionView)
+
+// Second, when the collection view’s data has loaded, create Content objects
+// and load it into ScrollTracker.
+var content = [Content]()
+for object in myDataObjects {
+  let content = Content(name: object.name, contentID: object.id, 
+                        insertionID: object.insertionID)
+  content.append(content)
+}
+scrollTracker.setFramesFrom(content: content)
+`
+
+Once this configuration is complete, `ScrollTracker` will automatically log impressions when the user interacts with the `UICollectionView`.
+
+This functionality uses KVO on `UIView`s to eliminate the need to call `scrollViewDidScroll()` on `ScrollTracker`, and to wait for layout to update frames. To do the latter, call `setFramesFrom*` after the content view's content is loaded, and the frames will be automatically calculated when layout on the content view completes.
+
+`ScrollTracker` initiates KVO on provided `UIViews` when used in this capacity. Releasing all references to `ScrollTracker` will stop KVO.
+
+In addition to logging impressions for a single `UICollectionView`, `ScrollTracker` can handle collection views nested inside `UIScrollViews`. To accommodate this scenario, use the following pattern.
+
+TypeScript
+
+`// First, the code that owns the CONTAINER UIScrollView should create a
+// ScrollTracker with the scroll view.
+// In StuffedAnimalsViewController:
+stuffedAnimalsScrollView = UIScrollView(...)
+hippoScrollTracker = service.scrollTracker(scrollView: stuffedAnimalsScrollView)
+
+// Second, pass the ScrollTracker to code that owns the CONTENT UICollectionView.
+// In StuffedAnimalsViewController:
+hippoViewController = HippoViewController(scrollTracker: scrollTracker)
+
+// Finally, when the collection view’s data has loaded, create Content objects
+// and load it into ScrollTracker.
+// In HippoViewController:
+var content = [Content]()
+for hippo myHippos {
+  let content = Content(name: hippo.name, contentID: hippo.id, 
+                        insertionID: hippo.insertionID)
+  content.append(content)
+}
+scrollTracker.setFramesFrom(collectionView: hippoCollectionView, content: content)
+`
+
+If you wish to record impressions from multiple collection views in the same scroll view, create one instance of `ScrollTracker` for each collection view.
+
+> 🚧
+> 
+> ScrollTracker performs a linear scan across all its content on a timer.
+> 
+> For this reason, passing an extremely large UICollectionView (more than a few hundred cells) will cause noticeable performance issues. If this is a concern for your app, let us know and we can explore solutions for you.
+
+#### React Native
+
+Use the `useImpressionLogger()` hook for accurate tracking in `FlatLists` and `SectionLists`. If using some other kind of scroll view, you can use `ScrollTracker` by setting the viewport manually through the `viewport` property when the scroll view updates.
+
+Make sure that the identifier you provide is unique for every list on the same screen.
+
+TypeScript
+
+`import { useImpressionLogger } from "@promotedai/react-native-metrics";
+
+const {
+  _viewabilityConfig, _onViewableItemsChanged 
+} = useImpressionLogger("MyListIdentifier", (viewToken) => ({ 
+  content_id: viewToken.item.contentId,
+  insertion_id: viewToken.item.insertionId,
+  name: viewToken.item.name
+})); 
+
+<SectionList onViewableItemsChanged={handleViewableItemsChanged} ... />
+`
+
+### View Logging
+
+Promoted requires accurate data about the current screen when your users view or interact with content. We recommend the following usage patterns with the metrics logging library.
+
+#### UIKit
+
+Call `logView` or `logPromotedViewForSelf` in the `viewDidAppear` method of every `UIViewController` that you need to track. Promoted will only track screens for `UIViewControllers` that have been explicitly logged via this mechanism. If you don’t use logView to track a given `UIViewController`, Promoted won’t consider that `UIViewController` to be a screen that it should track.
+
+Promoted needs to sync the state of the `UIViewController` stack before logging every batch of events. This is done by inspecting the `rootViewController` on the `keyWindow` of the `UIApplication`. (The `viewWillAppear` method on `UIViewController` is not always called when a view controller comes to the front.)
+
+#### React Native
+
+Use `NavigationContainer` to track the state of views. Promoted’s `useViewTracker()` hook provides handlers for `onReady` and `onChange`. These provide ideal entry points for view logging. 
+
+TypeScript
+
+`import { useImpressionLogger } from "@promotedai/react-native-metrics";
+
+const navigationRef = useRef();
+const { _onReady, _onStateChange } = useViewTracker(navigationRef);
+
+<NavigationContainer
+  ref={navigationRef}
+  onReady={_onReady}
+  onStateChange={_onStateChange}>
+  <...>
+</NavigationContainer>
+`

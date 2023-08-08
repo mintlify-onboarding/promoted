@@ -1,0 +1,195 @@
+---
+title: "User and Item CMS Feature Formats"
+description: "How to use the User and Item CMS systems to create automatic production features"
+---
+
+The [User and Item Content Management Systems (CMS)](https://www.promoted.ai/videos/sending-additional-data-to-promoted-ai) allow you to upload arbitrarily-formatted JSON per User and Content Item respectively for automated use in production machine learning, allocation rules, and in analytics. 
+
+#### Managing CMS Record State
+
+The CMS system is a simple REST service. Typically, use BATCH or PUT to overwrite the JSON record value for any User or Item key. If you have multiple writers to the same record type, for example, a database update hook and a daily pipeline that both write to the same User ID in the User CMS, specify a different `source` parameter per writer. Each source is isolated. In Delivery to create features, the JSON records for all sources are unioned together. The overwrite order of the same JSON path in multiple sources is undefined. We recommend using unique keys across sources.
+
+#### Example JSON CMS Records
+
+We'll reference these example CMS JSON records in the documentation below.
+
+**Example Item CMS Record**
+
+Example Item CMS Record
+
+`{
+  "valueScore": {
+    "c": 1.8462813912476075,
+    "a": 1.2222,
+    "b": 2
+  },
+  "status_details": {
+    "copyright": true,
+    "author": "John Doe"
+  },
+  "is_enabled": false,
+  "standards_label": [],
+  "subscores": {},
+  "categories": [
+    "food",
+    "drinks",
+    "chicken"
+  ],
+  "created_at": "2022-11-10",
+  "is_holiday": true,
+  "seasonal_sale_pattern_usa": 0.1,
+  "seasonal_sale_pattern_australia": 0.9
+}
+`
+
+**Example User CMS Record**
+
+Example User CMS Record
+
+`{
+  "country": "USA",
+  "num_purchases": 34,
+  "created_at": "2021-02-10",
+  "categories": [
+    "cats",
+    "food",
+    "chicken"
+  ],
+  "purchased": [
+  	"content_ID_1234",
+    "content_ID_3482"
+  ],
+  "liked": [
+  	"content_ID_1234",
+    "content_ID_3482"
+  ],
+  "followed_authors": [
+    "John Doe",
+    "Mary Smith",
+    "Bill Gates"
+  ]
+}
+`
+
+#### How Features are Generated per Record
+
+**Numeric and Boolean Features**
+
+Keys paths with floats or integer values will be converted to numeric features. Boolean features have the value of 0 (false) or 1 (true).
+
+Strings that can be cast to a numeric value will be converted and used like numeric values. 
+
+**Categorical (string-valued) Features**
+
+Key paths with string values are converted to "Sparse ID" features are used in defining blender rules like diversity rules. For example, `status_details.author`will create a Sparse ID feature that could be used to define diversity allocation rules. String values that can be cast to an integer will also be used as a categorical feature in addition to being used as a numeric feature.
+
+**Identity Features**
+
+Integer-values float-values with at most 2 digits of precision, and string-valued keypaths will create a "sparse" identity feature with a name with the pattern `keypath=value` and a value of `1`. Identity features are used in sparse ML models. For example, `valueScore.b=2`\= `1.0`. 
+
+**Maps**
+
+Each path in every map is a unique key path and generates at least one feature. For example, `valueScore` generates at least 3 features:
+
+1. `valueScore.a`\=`1.2222`
+2. `valueScore.b` \= `2.0`
+3. `valueScore.c`\=`1.8462813912476075`
+
+Additionally, a feature indicating if the map is empty is set per map. For example:
+
+`subscores.empty` \= `1.0`  
+`valueScores.empty`\= `0.0`
+
+**Lists** 
+
+Two keypaths are generated for every item in a list: an ordered path, and an unordered path. The ordered path uses the integer position in the path, and the unordered path uses `|` for every position in the path. For example:
+
+`categories.0=food` \= `1.0 `  
+`categories.1=drinks`\=`1.0`  
+`categories.|=food`\=`1.0`  
+`categories.|=drinks`\=`1.0`
+
+_There is a limit of at most 100 items in any list._ If you need a longer list (e.g., to send a list of the most recently viewed pages), then you should be using the Measure system infrastructure to send this information to Promoted, which is dramatically more efficient and happens in real-time.
+
+**Timestamps**
+
+If a string looks like an [ISO8601 timestamp](https://pkg.go.dev/github.com/relvacode/iso8601@v1.1.0#ParseString) string format or is a float or int within the reasonable range of an Epoch Unix timestamp in seconds or milliseconds, then Promoted will automatically represent this feature as a time-from-now feature with the same name. For example, if the value of an entry in the Item CMS is `created_at="2022-11-10"`, then the value of the feature `created_at` will be the number of milliseconds at the time of Delivery when logged and when used in machine learning inference or blender rules. If 25 hours later, then the feature value will be `25 _ 60 _ 60 _ 1000 = 90,000`. If 43.2 hours later, then `43.2 _ 60 _ 60 _ 1000 = 155,520`.
+
+Promoted will still create an `"key=value"=1` identity feature for the exact value of the timestamp like for other features.
+
+The numeric range is between `1999-12-31 16:00:00` as `946684800[_1000]` and `2050-02-10 16:00:00` or `2528150400[_1000]`.
+
+[ISO8601](https://en.wikipedia.org/wiki/ISO%5F8601) timestamps supported have the formats like:
+
+* `YYYY-MM-DDTHH:MM:SSZ`
+* `YYYY-MM-DD`
+
+### User <> Item Interaction Features
+
+Interaction features are features that indicate a User and an Item share some relationship and are powerful for fitting high-quality personalization models. For example, you can define a feature for if a User follows the seller who sells a particular item. 
+
+**Automatically-generated Interaction Features**
+
+When the _exact same keypath_ appears in both the User and Item CMS, a third feature unique is created with the feature name pattern `[keypath].interact` with the value set as the maximum value of the two Item and User features. Interaction features will not be created if the resulting value is 0.
+
+For example, in the examples above, the `categories` is shared and will generate interaction features.
+
+* `categories.interact` \= `2.0` The value is the number of times items in these two keypaths have the same value. There are two matches in between `categories` sets in Item and User ("food" and "chicken").
+* `categories.|=food.interact`\= `1.0` One of the matches in `categories`.
+* `categories.|=chicken.interact`\= `1.0`One of the matches in categories.
+
+ **Data Types Supported** 
+
+* Strings
+* Lists of Strings
+
+Colliding keypaths used in interaction features typically have a string value and include at least one list of strings. If you have two lists of strings (as in this example), then a set-intersection algorithm is used. If at least one of the keypaths is a string, then the maximum value of the interaction feature is 1.
+
+ It's possible to set a numeric-value interaction feature if the keypaths in the Item and User CMS records are equal. This is not a typical use case, and its use requires some clever use of the CMS record formats. Interaction features including lists of complex types (maps and nested lists) are not supported.
+
+**Interaction Features with Content ID and User ID**
+
+The keypath `content_id` is always available in Delivery for use in interaction features in the Item CMS. Its value is always set to the `content_id` in Delivery. _Warning_: if you set the `content_id` keypath in the Item CMS, then its value will be overwritten in Delivery. It's not forbidden to set the `content_id` keypath in the Item CMS, but it's probably a mistake that will lead to unexpected behavior.
+
+Likewise, the keypath `user_id` is always available in Delivery for use in interaction features in the User CMS. The same collision for `user_id` warning applies for the User CMS as it does for the `content_id` in the Item CMS: it's not forbidden, but it's probably a mistake to set it.
+
+**Manually Mapping Interactions**
+
+You can define keypath aliases to generate interaction features. This is useful when it may be infeasible or cumbersome to use the exact same keypath between User and Item CMSs to create interaction features. Or, you may want a one-to-many or many-to-many mapping between keypaths. You can define any mapping using the Interaction Feature endpoint. To use this endpoint, please contact Promoted.
+
+**Example User<>Item Interaction Configuration**
+
+Note that "categories" is not defined because it's already automatically generated due to the same keypaths between the Item and User CMS.
+
+Example User<>Item Interaction Configuration
+
+`{
+  "user": {
+    "status_details.author": "followed_authors",
+    "liked.": "content_id"
+  },
+  "item": {
+    "content_id": [
+      "purchased",
+      "purchased_qty"
+    ]
+  }
+}
+`
+
+### Avoid Collisions Unless Interaction is Intended
+
+Promoted currently only supports User <> Item interaction features from the CMS. Features set on Insertion.Properties are assumed to overwrite or append to features from the Item CMS for the purpose of setting interaction features. This can be used in testing or for prototyping changes.
+
+If you do not want automatically-generated interaction features generated between User and Item keypaths, then use unique keypaths in the User and Item CMSs and in all sources, including Request.Properties and Request.Insertion.Properties. Only one keypath will be used to set the corresponding feature (not including the interaction feature) when there are multiple synonymous keypaths from multiple sources. The order of priority for setting the value, from lowest to highest, is:
+
+1. Promoted built-in features
+2. Item CMS
+3. User CMS
+4. Request.Properties
+5. Request.Insertion.Properties
+6. \[coming soon\] A/B testing parameters
+
+**Example Problematic Collision**
+
+For example, both the User and Item records use the keypath `created_at`. This is probably an error because there isn't any obvious interaction relationship between Item and User for an attribute like this in this interaction feature system. An interaction feature `created_at.interaction` will still be created, but it's unlikely to be useful in machine learning. Further, you will lose the distinct ML features for Item.created\_at and User.created\_at. To correct this, rename one or both `created_at` feature name to something unique, like `item_created_at`.

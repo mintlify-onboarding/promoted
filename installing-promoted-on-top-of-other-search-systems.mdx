@@ -1,0 +1,49 @@
+---
+title: "Installing Promoted on Top of Other Search Systems"
+description: "How Promoted's optimizations are always incremental and reuse existing investments in search, recommendations, and ads"
+---
+
+Promoted specializes in winning an extra 5-10% extra revenue efficiency when your scaled online marketplace, e-commerce app, or social media network has already maxed out industry-standard solutions like Algolia, Elastic, AWS Personalize. Gains from Promoted always extend and are incremental to existing search, discovery, recommendations, and ads targeting systems (together, “retrieval systems”). Promoted is designed to work with and extend all existing retrieval systems, including all vendors and any in-house system, including (but not limited to):
+
+**Search**: Algolia, Bloomreach, Constructor, Elastic, Pinecone, Apache Solr, OpenSearch  
+**Recommendations**: AWS Personalize, Google Cloud Recommender  
+**Databases**: Redshift, Postgres, MongoDB, MySQL.  
+**Ad Servers**: Kevel, Citrus Ads, Google Ads Manager
+
+Use of Promoted requires the selection of one or more retrieval systems. Most Promoted customers already have at least one in-house system or vendor for search, feed, recommendations, and ad targeting. Promoted extends, not necessarily replaces, your existing systems, dramatically lowering integration risk and eliminating business logic migration costs. If you do not already have a search, retrieval, or targeting system, then Promoted can provide hosting and consulting services to host or help you self-host a retrieval system from one of our retrieval system partners.
+
+### How Promoted Ranking Works
+
+Promoted uses a multi-stage retrieval architecture used at large search engines and social media companies. Promoted specializes in the last stages: ranking, blending, and if using ads, ad allocation. 
+
+1. Fetch several hundred candidates, potentially from different sources. Include and send all metadata from these candidate sources, including any ranking, quality, relevance, or personalization scores. Promoted will use these signals in its own models to further improve optimization using “[model stacking](https://www.promoted.ai/videos/search-feed-optimization).”
+2. Promoted uses heavy-weight ML to score and optimally allocate items from this result set of about 1,000 items. Our extremely efficient C++ and Flink systems use millions of signals extracted from your data, user engagement, in-house or vendor scores, item metadata, and contextual information like search queries, location, time, and season. For ads, this includes computing "[insertion bids](https://medium.com/promoted/what-do-you-mean-by-bid-b6c8e625236a)" for different ad optimizations (e.g., CPC) to be used in pricing. Our systems are open and source available: see [Developers](https://www.promoted.ai/developers).
+3. Promoted use allocation rules and ranking to choose an optimal presentation of organic listings and ads, accounting for merchandising and filtering rules, diversity, utility function objectives (e.g., maximize users-who-purchase versus GMV versus profitability), and if using ads, ad load, and quality controls.
+4. Promoted logs the results and returns the results to your in-house systems to display as if they were returned by your existing retrieval system. Results will be more relevant and performant; otherwise, there will be no change to the end-user display or experience.
+![](/images/dbb3f63-retrieval_ranking_diagram.drawio.png) 
+
+### Working Other Ranking and Personalization Systems
+
+Promoted can extend any in-house or vendor system providing personalization, recommendations, ranking, or allocation services to further optimization results and add Promoted’s integrated metrics system to all listings. In practice, the limits to laying Promoted on top of other systems are end-to-end user latency (how long it takes for results to be shown to users), system maintenance complexity, and infrastructure hosting costs.
+
+**Real-time system stacking**: Promoted can combine one or many other systems together into a unified presentation to the user. For example, other search ranking, personalized recommendations, new item exploration, internal promotions and merchandising, and ads. At many large marketplaces, e-commerce apps, and social media, separate teams or vendors own these different systems. Promoted unifies optimization across these different systems and balances the optimal mixture.
+
+**Real-time signal passing and model stacking**: In addition to stacking systems, you can stack other recommendation, quality, and optimization models by sending these scores and ranks to Promoted. Promoted will automatically include all ranks and scores passed on the Delivery API in its own models to further optimize. In this way, Promoted always at least performs as well as your best optimization system — because it always can build on top of it, versus requiring a competing replacement.
+
+**Asynchronous Signal Loading** via the Item and User Content Management System (CMS). Passing user and item data and model scores can be computationally expensive and slow in production. Instead, signals can be loaded into the Promoted CMS from database update hooks, batch jobs, recurring data analytics pipelines, and in-house CMS systems. All signals loaded into the CMS will be made available to Promoted delivery for optimization and blending rules and later for analytics and reporting in our Metrics product. This is much more cost-efficient and typically easier to integrate in most configurations as compared to sending all information in real-time on each Delivery request for Promoted ranking. See [Sending Additional Data to Promoted.ai via the CMS: Explainer video ](https://www.promoted.ai/videos/sending-additional-data-to-promoted-ai) .
+
+**System Replacement**: Promoted may be able to reproduce other personalization or quality systems, or adding other personalization systems in addition to Promoted does not measurably improve the end-user experience over using Promoted alone. In these cases, you may choose to discontinue the use of other personalization, recommendation, and ranking systems to save infrastructure costs, lower end-user latencies, and reduce engineering maintenance costs.
+
+### Case Study: Algolia and TPT
+
+**Background**: TPT ([teacherspayteachers.com](teacherspayteachers.com)) is a two-sided online marketplace for lesson plans. They are the #8th largest private marketplace and do a large fraction of billion dollars in yearly sales. 
+
+**Partnership**: TPT uses Algolia for search ranking and Google Cloud Recommender for personalized recommendations. In the past, TPT has experimented with Algolia’s personalized search re-ranker. In late 2022, Promoted partnered with TPT to personalize and optimize TPT search and recommendations and unify the optimization system to modernize TPT’s existing sponsored search ad product. In addition, Promoted provided metrics and data infrastructure to power self-service seller item search ranking reporting not provided by Algolia, Heap, or Google Analytics.
+
+**Results**: Promoted increased TPT’s revenue and GMV by “over +5%” while increasing total users who purchase and balancing individual seller impact in 2023 Q1\. TPT continues to launch new functionality and optimizations, to be announced later in 2023! TPT continued to use Google Recommender and Algolia. Promoted’s impact was an incremental extension to these systems. Because no system had to be replaced, integration risks were greatly mitigated and business logic migration was eliminated. All existing investments in Algolia could be reused, and gains were strictly incremental.
+
+**References**:
+
+[\[email protected\]](/cdn-cgi/l/email-protection#cda1a8b8a18db9a8acaea5a8bfbebdacb4b9a8acaea5a8bfbee3aea2a0): PM, Reporting  
+[\[email protected\]](/cdn-cgi/l/email-protection#483f212424083c2d292b202d3a3b3829313c2d292b202d3a3b662b2725): PM, Ads  
+[\[email protected\]](/cdn-cgi/l/email-protection#771d021b1e161937031216141f12050407160e031216141f1205045914181a): PM, Search

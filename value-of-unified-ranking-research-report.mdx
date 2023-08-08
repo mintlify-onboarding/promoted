@@ -1,0 +1,87 @@
+---
+title: "Value of Unified Ranking - Research Report"
+description: "Estimating impact of personalized, real-time e-commerce and online marketplace optimization."
+---
+
+_Dan Chapsky - Data Scientist, Promoted.ai_  
+[Google Doc Format](https://docs.google.com/document/d/141CvmnPZoh%5F1%5FYF1k55%5FpNIan%5FE0nP3Yp8nDCsKW7Fg/edit?usp=sharing) 
+
+### Overview
+
+Modern digital retailers are using a wider array of machine learning-based ranking and personalization tools than ever before. But what is their real ROI? What are the most important principles to maximize value for your customers and business? This document reviews the potential impact of discovery systems and key high-level features to look for when considering an investment.
+
+### The value of getting discovery right
+
+For any sized business, using the right engine for search, ranking, and personalization can positively impact everything from user engagement/retention to realized profit.
+
+#### Revenue
+
+* **10%-50% increase in sitewide revenue** when moving from basic search results to advanced, personalized search results
+* 3%-30% increase in sitewide revenue when incorporating personalized recommendations/ranking features `1`
+
+#### Conversions
+
+* **4%-40% increase in purchase conversions** from personalized surfaces
+* 20% - 150% increase in add-to-cart rate from personalized search + recommendations
+* 20% - 40% decrease in bounce rate in desktop websites for grocery stores `2`
+
+`1` This range reflects results for modern e-commerce + digital-first services. For older high-volume retailers who started as brick-and-mortar stores, this range is closer to 1 - 7% \[7\]  
+`2` Low sample size, this range comes from 3 separate studies of individual brands \[4\]
+
+### Important features for discovery systems
+
+As the above results show, organic discovery services can have impressive results for your business. However, these systems are complex and, despite improving isolated metrics, can have flat to negative overall business results without the right strategy. In general, successful organic discovery systems for marketplaces need to be able to do the following:
+
+#### Optimize for sustainable, long-term business value
+
+* Recommendation and search systems need to optimize directly for long-term business outcomes like sales and revenue, not proxy metrics like clicks or views. Not doing so can lead to low or even negative revenue impact from recommendation systems, even if initial results seem positive.
+* For example, recommending popular items or previously purchased items can lead to a higher CTR, but not increase revenue. Such optimization can lead to feedback loops that recommend items customers would have purchased anyway, ultimately reducing discovery of potentially higher-margin purchases \[8\]
+* In one study \[9\], a recommendation system optimizing for views was tested against one optimized for overall sales. The purchased-based recommendations generated 35% lift in sales while the view-based approach showed no lift. `3`
+
+#### Improve user experience for both buyers and sellers
+
+* Maintaining user retention and trust is key when optimizing recommendation systems. Increasing short-term revenue, especially with disruptive advertising, is well known to lower long-term revenue. \[14\]
+* A small change in customer retention, e.g. 0.5%, can have a significant impact on revenue \[7\]
+* The success of discovery systems can be dependent on user trust in the system for both buyers and sellers.\[11\]
+* Conversely, recommenders that optimize for engagement metrics such as CTR while not optimizing for user value can decrease user trust when the clicks lead to ultimately irrelevant content or poor experiences.\[16\]
+
+#### Work as a Unified System
+
+* Discovery systems that unify optimization over the levers of user value, business objectives and overall platform revenue deliver the strongest results.  
+   * This means an end-to-end system that does the full loop of using outcome data for model creation, consuming and cleaning activity data, feeding this data to the discovery engine, and returning personalized results.  
+   * Removing any part of this system can lead to worse results
+* Systems which can’t access user log data can be significantly less accurate. \[13\]  
+   * Without this data, bias can be introduced from not accounting for things like the order in which items were presented, existing promotions and alternative item choices.
+* Optimizing for a business objective without considering platform revenue and user experience can have disastrous results.  
+   * For example, during a test in 2012, Bing’s objective was to optimize for overall “share” of search queries. At one point, the quality of search results went down. This drove an increase in Bing’s business objective because users had to perform more queries to find what they wanted. \[12\]
+* Recommendation and ranking systems that can’t optimize platform-wide can often have significant blind spots.  
+   * Exclusively content-based recommendation techniques, without user data, will often lead to limited discovery. \[15\]  
+   * Optimizing for model predictive accuracy without taking into account context and ranking leads to recommendation systems which, in many cases, will lead to flat results. \[7\]
+* Ultimately, search, ranking, and personalization services can help increase value for businesses and customers as long as all the system pieces are working together.
+
+`3` This is just one indicative study. There are many examples of similar results from various studies in the industry as well.
+
+### Methodology
+
+* We surveyed existing discovery/recommendation solutions. We reviewed their products and customer results
+* We reviewed relevant literature from academic and industry research
+* Internal research and collective expertise from Pinterest, Facebook, and Google
+
+### Sources
+
+\[1\] The Forrester Wave™: Experience Optimization Platforms, Q4 2020 : [link](https://reprints2.forrester.com/#/assets/2/2013/RES157470/report)  
+\[2\] Gartner Magic Quadrant for Insight Engines (2021): [link](https://www.gartner.com/doc/reprints?id=1-24DCN5OJ&ct=201014&st=sb)  
+\[3\] The Forrester Wave™: Cognitive Search, Q2 2019: [link](https://reprints.forrester.com/#/assets/2/678/RES143835/reports)  
+\[4\] Internal research using inferences from \[10\] and three public case studies: [link 1](https://www.disruptordaily.com/ai-in-retail-use-case-bloomreach/), [link 2](https://www.fact-finder.com/blog/online-grocery/), [link 3](https://www.brighttalk.com/webcast/17349/432353/how-easycoop-uses-search-and-personalization-to-grow-their-online-grocery-busine)  
+\[5\] Gartner Magic Quadrant for Personalization Engines: [link](https://www.gartner.com/en/documents/3987480/magic-quadrant-for-personalization-engines)  
+\[6\] McKinsey’s How retailers can keep up with consumers: [link](https://www.mckinsey.com/industries/retail/our-insights/how-retailers-can-keep-up-with-consumers)  
+\[7\] Dietmar Jannach and Michael Jugovac, Measuring the Business Value of Recommender Systems. ACM Trans. Manag. Inform. Syst. 10, 4, Article 1 2019: [link](https://arxiv.org/pdf/1908.08328.pdf)  
+\[8\] Feedback Loop and Bias Amplification in Recommender Systems, CIKM’20: International Conference on Information and Knowledge Management: [link](https://arxiv.org/abs/2007.13019)  
+\[9\] Impact of recommender systems on sales volume and diversity, In Proceedings of the 2014 International Conference on Information Systems, ICIS ’14, 2014: [link](https://www.krannert.purdue.edu/academics/MIS/workshop/Rec%20Diversity%20Empirical%20DEC%202015.pdf)  
+\[10\] Lawrence, R., Almasi, G., Kotlyar, V. et al. Personalization of Supermarket Product Recommendations. Data Mining and Knowledge Discovery, 2001: [link](https://www.semanticscholar.org/paper/Personalization-of-Supermarket-Product-Lawrence-Alm%C3%A1si/0ece6521492b0d3fa7721b69e3c8fcd43a67d63c)  
+\[11\] M. Nilashi, D. Jannach, O. bin Ibrahim, M. D. Esfahani, and H. Ahmadi. Recommendation quality, transparency, and website quality for trust-building in recommendation agents. Electronic Commerce Research and Applications, 19:70–84, 2016.: [link](https://www.aminer.cn/pub/58437713ac44360f1082ceaa/recommendation-quality-transparency-and-website-quality-for-trust-building-in-recommendation-agents)  
+\[12\] R. Kohavi, A. Deng, B. Frasca, R. Longbotham, T. Walker, and Y. Xu. Trustworthy online controlled experiments: Five puzzling outcomes explained. In Proceedings of the 18th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, KDD ’12, pages 786–794, 2012.: [link](https://notes.stephenholiday.com/Five-Puzzling-Outcomes.pdf)  
+\[13\] T. Joachims, A. Swaminathan, and T. Schnabel. Unbiased learning-to-rank with biased feedback. In Proceedings of the 17th International Joint Conference on Arti€cial Intelligence, IJCAI ’17, pages 781–789, 2017: [link](https://www.researchgate.net/publication/326201634%5FUnbiased%5FLearning-to-Rank%5Fwith%5FBiased%5FFeedback)  
+\[14\] Christian Rohrer and John Boyd. The rise of intrusive online advertising and the response of user experience research at Yahoo! In CHI '04 Extended Abstracts on Human Factors in Computing Systems. CHI EA '04, 2004: [link](https://www.researchgate.net/publication/221518473%5FThe%5Frise%5Fof%5Fintrusive%5Fonline%5Fadvertising%5Fand%5Fthe%5Fresponse%5Fof%5Fuser%5Fexperience%5Fresearch%5Fat%5FYahoo)  
+\[15\] \] D. Lee and K. Hosanagar. How Do Recommender Systems Affect Sales Diversity? A Cross-Category Investigation via Randomized Field Experiment. Information Systems Research, 30(1):239–259, 2019: [link](https://repository.upenn.edu/cgi/viewcontent.cgi?article=1341&context=marketing%5Fpapers)  
+\[16\] H. Zheng, D. Wang, Q. Zhang, H. Li, and T. Yang. Do clicks measure recommendation relevancy?: An empirical user study. In Proceedings of the Fourth ACM Conference on Recommender Systems, RecSys ’10, pages 249–252, 2010.: [link](https://dl.acm.org/doi/abs/10.1145/1864708.1864759)
