@@ -3,13 +3,7 @@ title: "Sending Content Details"
 description: "Goal: Promoted wants to learn using your content details"
 ---
 
-## Sending Content Details
-
-_Goal: Promoted wants to learn using your content details_
-
 ![259](/images/7ee9694-content.svg "content.svg")
-
-Content management flow
 
 Promoted allows unstructured JSON to be uploaded per string ID key using [Content API](/reference/content-api) OpenAPI 3\. This allows **item (or content)** and user data to be batch uploaded to bootstrap then incrementally updated in an event-based system. While all information could technically be sent on every Delivery API request, this is wasteful, and not all information may be available in the customer system that calls Delivery API. Promoted makes all information uploaded to the CMS available for production feature engineering, blending rules, and targeting with a few seconds of latency.
 
