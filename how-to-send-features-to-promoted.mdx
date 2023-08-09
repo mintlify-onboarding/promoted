@@ -1,8 +1,7 @@
 ---
 title: "How to Send Features"
+description: "See [What types of features does Promoted support?](/docs/what-types-of-features-does-promoted-support) for descriptions of these features."
 ---
-
-See [What types of features does Promoted support?](/docs/what-types-of-features-does-promoted-support) for descriptions of these features.
 
 ## Content Item features
 
@@ -20,8 +19,9 @@ Send Context features on the Request to Delivery API.
 
 Send Interaction features on the Request to Delivery API.
 
-> 🚧
-> 
-> Avoid sending features back on View, Impression and Action log records
-> 
-> It's a common mistake to try to send features back on these records. The Promoted Delivery system either needs to (1) already have the features pre-processed or (2) have them passed our the Delivery API call. If you have questions, please message the Promoted team.
+<Warning>
+
+    **Avoid sending features back on View, Impression and Action log records**
+
+    It's a common mistake to try to send features back on these records. The Promoted Delivery system either needs to (1) already have the features pre-processed or (2) have them passed our the Delivery API call. If you have questions, please message the Promoted team.
+</Warning>

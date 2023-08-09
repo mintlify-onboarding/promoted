@@ -1,5 +1,6 @@
 ---
 title: "Types of ML Features Supported"
+sidebarTitle: "Overview"
 ---
 
 Promoted supports many different Feature types to make recommendations. Here, we list the major Feature Domains, provide some examples, and describe how to send these features to Promoted. The top domains are:
@@ -20,10 +21,18 @@ Context features are properties about where the items will be shown and to whom.
 
 Interaction features require the intersection between two or more domains. Interaction features tend to be the most powerful features in scoring (item, user, context) matches. Domain intersections include:
 
-* **(Item x Context)**: query match or relevance scores
-* **(Item x User)**: personalization scores, past user history with this item, collaborative filtering
-* **(Context x User)**: search filters, home feed categories
-* **(User x Item x Context)**: other recommendation models
+<Card title="Item x Context" icon="hundred-points" icontype="duotone">
+  query match or relevance scores
+</Card>
+<Card title="Item x User" icon="backward" icontype="duotone">
+  personalization scores, past user history with this item, collaborative filtering
+</Card>
+<Card title="Context x User" icon="filter" icontype="duotone">
+  search filters, home feed categories
+</Card>
+<Card title="User x Item x Context" icon="ellipsis-stroke" icontype="duotone">
+  other recommendation models
+</Card>
 
 ## Integration
 

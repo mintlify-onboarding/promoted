@@ -4,7 +4,13 @@ title: "How does Promoted protect your metrics logging data?"
 
 We have two log concepts:
 
-* _Profiles logs_ \- these contain sensitive information and are designed to be mutated depending on User requests. An example of a Profile record is our User log record.
-* _Transactions logs_ \- these are designed not to contain sensitive information. They’re also designed to be immutable and easy to separate from the actual user.
+
+
+<Card title="Profiles logs" icon="user" icontype="duotone">
+  these contain sensitive information and are designed to be mutated depending on User requests. An example of a Profile record is our User log record.
+</Card>
+<Card title="Transactions logs" icon="arrow-right-arrow-left" icontype="duotone">
+  these are designed not to contain sensitive information. They’re also designed to be immutable and easy to separate from the actual user.
+</Card>
 
 In order to make it easy to detach data and recommendations from specific users, we introduce a separate user ID, called a _log\_user\_id_, which you can think of as an anonymous user id. Log\_user\_ids can be kept in User tables or on devices. When a user wants to be forgotten, you delete the association of the user to log\_user\_id.

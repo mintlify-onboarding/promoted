@@ -37,7 +37,7 @@
             "group": "Integration",
             "pages": [
               {
-                "group": "How to integrate with Promoted?",
+                "group": "How to Integrate with Promoted?",
                 "pages": [
                   "how-to-integrate-with-promoted",
                   "ranking-requests",
@@ -54,11 +54,47 @@
             ]
           },
           {
+            "group": "Explanation",
+            "pages": [
+              {
+                "group": "Tracking",
+                "pages": [
+                  "types-of-web-events-to-log-to-promoted-metrics",
+                  "why-another-user-event-tracker",
+                  "how-does-promoted-protect-your-data"
+                ]
+              },
+              {
+            "group": "Types of ML Features Supported",
+            "pages": [
+              {
+                "group": "Tracking",
+                "pages": [
+                  "what-types-of-features-does-promoted-support",
+                  "how-to-send-features-to-promoted"
+                ]
+              },
+              "promoted-server-side-sdks",
+              "how-to-run-a-holdback",
+              "how-to-read-daily-ml-reports",
+              "user-and-item-cms-feature-formats",
+              "client-metric-definitions",
+              "installing-promoted-on-top-of-other-search-systems",
+              "value-of-unified-ranking-research-report",
+              "build-versus-buy-ads",
+              "estimating-impact-using-the-shadow-tier",
+              "search-engineering-qa",
+              "index-of-ad-delivery-terms"
+            ]
+          },
+          {
             "group": "API Reference",
             "pages": [
               "api-reference/overview",
               "api-reference/server-sdk",
               "api-reference/client-metrics-sdk"
+            ]
+          }
             ]
           }
     ],
