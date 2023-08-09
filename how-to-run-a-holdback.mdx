@@ -1,10 +1,9 @@
 ---
 title: "How to Run a Holdback Test"
+description: "When you want to evaluate Promoted's impact, you can run a holdback experiment. The control arm will get your original rankings. The treatment arm will get Promoted rankings. We have two common ways of running holdbacks:"
 ---
 
 ## Overview
-
-When you want to evaluate Promoted's impact, you can run a holdback experiment. The control arm will get your original rankings. The treatment arm will get Promoted rankings. We have two common ways of running holdbacks:
 
 * You can run a holdback from your code using the Promoted server-side SDK.  
    * Pros: This allows the control to have lower latency (no blocking call to Promoted) and it gives you easier to access to the experiment arms.  
@@ -17,9 +16,8 @@ When you want to evaluate Promoted's impact, you can run a holdback experiment. 
 
 Here is an example in Typescript. Similar code exists in the other server-side SDKs.
 
-TypeScript
-
-`` // Create a small config indicating the experiment is a 50-50 experiment where 10% of the users are activated.
+```typescript TypeScript
+ // Create a small config indicating the experiment is a 50-50 experiment where 10% of the users are activated.
 const experimentConfig = twoArmExperimentConfig5050("promoted-v1", 5, 5);
 
 async function callPromoted(
@@ -43,13 +41,12 @@ async function callPromoted(
 
   return ...
 }
- ``
+```
 
 Here's an example using 
 
-TypeScript
-
-`` // Or use your own custom experiment memberships (e.g. `getExperimentActivationAndArm`)
+```typescript TypeScript
+ // Or use your own custom experiment memberships (e.g. `getExperimentActivationAndArm`)
 // and send Promoted:
 // (1) if the user is activated into the experiment and
 // (2) which arm to perform.
@@ -64,7 +61,7 @@ const experimentMembership = experimentActivated
       arm: inTreatment ? 'TREATMENT' : 'CONTROL',
     }
   : null;
- ``
+```
 
 ### More advanced example
 
@@ -74,9 +71,8 @@ Here's a more complex example that supports:
 * Separate configuration for internal users.
 * Also supports skipping the experiment and only logging (or only calling Delivery API) through the same method.
 
-TypeScript
-
-`/**
+```typescript TypeScript
+/**
  * @param userInfo { userId, logUserId, isInternalUser }
  * @param overrideOnlyLog If set, skips the experiment and forces the onlyLog option.
  */
@@ -122,4 +118,4 @@ async function callPromoted(
       productIdToProduct
   );
 }
-`
+```

@@ -86,6 +86,8 @@
               "search-engineering-qa",
               "index-of-ad-delivery-terms"
             ]
+          }
+            ]
           },
           {
             "group": "API Reference",
@@ -93,8 +95,6 @@
               "api-reference/overview",
               "api-reference/server-sdk",
               "api-reference/client-metrics-sdk"
-            ]
-          }
             ]
           }
     ],

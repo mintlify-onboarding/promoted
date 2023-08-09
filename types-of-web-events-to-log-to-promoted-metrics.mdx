@@ -6,12 +6,24 @@ title: "Overview of user event tracking with Promoted metrics"
 
 Your code needs modified to log events and contexts. These can be thought of as having a parent relationship.
 
-* **User** \= User-level data.
-* **(Page) View** \= Logged for a page view, screen view or activity view. This includes session information.
-* **Request** \= A request for a list of content. Views can have multiple Requests on it. E.g. related items, search suggested items, users who bought X also bought Y.
-* **Insertion** \= An item in a Request’s list response. These might not get viewed (Impression) by the user.
-* **Impression** \= When an item is viewed on a screen long enough to count as an impression. E.g. >50% visible for >1s.
-* **Action** \= Action taken by a user. For example, when an item is clicked on.
+<Card title="User" icon="user" icontype="duotone">
+  User-level data.
+</Card>
+<Card title="(Page) View*" icon="eye" icontype="duotone">
+  Logged for a page view, screen view or activity view. This includes session information.
+</Card>
+<Card title="Request" icon="message-question" icontype="duotone">
+  A request for a list of content. Views can have multiple Requests on it. E.g. related items, search suggested items, users who bought X also bought Y.
+</Card>
+<Card title="Insertion" icon="download" icontype="duotone">
+  An item in a Request’s list response. These might not get viewed (Impression) by the user.
+</Card>
+<Card title="Impression" icon="face-smile" icontype="duotone">
+  When an item is viewed on a screen long enough to count as an impression. E.g. >50% visible for >1s.
+</Card>
+<Card title="Action" icon="bullseye-pointer" icontype="duotone">
+  Action taken by a user. For example, when an item is clicked on.
+</Card>
 
 ## Logging Flow
 
