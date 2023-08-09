@@ -1,5 +1,6 @@
 ---
 title: "Metrics Library for iOS Performance Debugging Using OSLog and Xray"
+sidebarTitle: "Metrics Library"
 description: "A step-by-step guide for using Xray programmatically."
 ---
 
@@ -7,7 +8,8 @@ description: "A step-by-step guide for using Xray programmatically."
 
 In your `ClientConfig` (`PROClientConfig`) object, set the `xrayEnabled` and `osLogEnabled` flags to true (YES). This must be done before service startup. For example, this would occur in `AppDelegate.m` in the `promotedMetricsModule` method:
 
-`- (PromotedMetricsModule *)promotedMetricsModule {
+```
+- (PromotedMetricsModule *)promotedMetricsModule {
     PROClientConfig *config = [[PROClientConfig alloc] init];
     // ...
     config.osLogEnabled = YES;
@@ -17,7 +19,7 @@ In your `ClientConfig` (`PROClientConfig`) object, set the `xrayEnabled` and `os
     [service startLoggingServices];
     return [[PromotedMetricsModule alloc] initWithMetricsLoggerService:service];
 }
-`
+```
 
 ## OSLog
 
@@ -49,7 +51,8 @@ Xray also prints a summary of metrics for the latest batch and cumulative resour
 
 Set a breakpoint in `MetricsLogger.handleFlushResponse()` to view the result of metrics logging calls. You can inspect the properties of Xray via the debugger via the xray property of `MetricsLogger`.
 
-`private func handleFlushResponse(data: Data?, error: Error?) {
+```
+private func handleFlushResponse(data: Data?, error: Error?) {
   osLog?.info("Logging finished")
   if let e = error {
     osLog?.error("flush/sendMessage: %{public}@",
@@ -58,6 +61,6 @@ Set a breakpoint in `MetricsLogger.handleFlushResponse()` to view the result of 
   }
   xray?.metricsLoggerBatchResponseDidComplete()
 }
-`
+```
 
 We’ll eventually add more detailed reporting of individual logging calls in Xray, via a separate flag. For now, the debugger is the best way to view this information.

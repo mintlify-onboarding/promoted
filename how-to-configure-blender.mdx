@@ -1,8 +1,7 @@
 ---
-title: "How to configure Blender?"
+title: "How to Configure Blender?"
+description: "Blender is a Promoted's Delivery system that allows for blending of content after individual quality score predictions have been made. It can be used to force content to certain positions, prioritize content with or without certain properties and rules for how to increase diversity of results."
 ---
-
-Blender is a Promoted's Delivery system that allows for blending of content after individual quality score predictions have been made. It can be used to force content to certain positions, prioritize content with or without certain properties and rules for how to increase diversity of results.
 
 ## Blender ranks and allocates items
 
@@ -56,9 +55,8 @@ Positive rules share a lot of properties with insert rules, with the big differe
 
 The positive rule below selects all items that are within `20.0` miles. The negative rule prevents two items from being placed next to each other if they both have a door. As positive rules are always run in tandem with negative rules, both are shown
 
-JSON
-
-`[
+```json JSON
+[
     rule: "positive",
     attribute_name: "distance_miles",
     eval_method: {
@@ -74,13 +72,12 @@ JSON
         type: "bool",
     },
 ]
-`
+```
 
 Given the items below,
 
-JSON
-
-`[
+```json JSON
+[
     {
         name: "the grotto",
         score: 2.0,
@@ -134,7 +131,7 @@ JSON
         "properties": { },
     },
 ]
-`
+```
 
 if the `bungalow` was just allocated at position `1` and blender moves on to position `2`, first the negative rule is applied. Because `min_spacing` is 1, the rule rejects all items that have the property `has_door: true` (which in this case are the hut and the grand hotel).
 
@@ -150,9 +147,8 @@ Negative rules don’t outright select items the way that positive and insert ru
 
 The negative rule defined below will ensure that two items with property `dog` can be placed next to one another.
 
-JSON
-
-`{
+```json JSON
+{
     rule: "negative",
     attribute_name: "animal",
     min_spacing: 1,
@@ -163,13 +159,12 @@ JSON
         },
     },
 }
-`
+```
 
 Given the items below,
 
-JSON
-
-`[
+```json JSON
+[
     {
         name: "barker",
         score: 2.0,
@@ -191,7 +186,7 @@ JSON
         properties: { },
     },
 ]
-`
+```
 
 if blender just allocated barker to position `1` and is now trying to find an item to put into position `2`, it will use the rule defined above to skip `blueberry`, because it has the `animal` property with value `dog` and there is no space between positions `1` and `2`. It will not skip mr snuggles and lasagna, because they don’t share a property with the same value.  
 Once blender moves on to fill position `3`, it will no longer skip `blueberry`, because now the negative rule no longer applies (since there is `1` position “space” between positions `1` and `3`, thus fulfilling the rule).
@@ -204,9 +199,8 @@ Insert rules are filters and select a subset of items based on their properties.
 
 The insert rule below selects all items that fulfill the condition `distance_miles <= 20.0`.
 
-JSON
-
-`{
+```json JSON
+{
     rule: "insert",
     attribute_name: "distance_miles",
     eval_method: {
@@ -215,13 +209,12 @@ JSON
         or_equal: true,
     },
 }
-`
+```
 
 Given the items below,
 
-JSON
-
-`[
+```json JSON
+[
     {
         name: "the hut",
         score: 1.0,
@@ -243,7 +236,7 @@ JSON
         "properties": { },
     },
 ]
-`
+```
 
 the above insert rule will consider `the hut` and `the cave`, because they are close by, but not `the grand hotel`, because it is too far away. `lasagna` will also not be considered, because it has no distance property on which the rule can match.
 
@@ -257,20 +250,18 @@ Diversity rules penalize the scores of subsequent items if they have common prop
 
 The below diversity rule applies to the property name animal and has a penalty multiplier of `0.5`.
 
-JSON
-
-`{
+```json JSON
+{
     rule: 'diversity',
     attribute_name: 'animal',
     multiplier: 0.5,
 }
-`
+```
 
 Given the items below,
 
-JSON
-
-`[
+```json JSON
+[
     {
         name: "barker",
         score: 2.0,
@@ -292,7 +283,7 @@ JSON
         properties: { },
     },
 ]
-`
+```
 
 If `barker` was just allocated, then `blueberry` will get a score `1.0 * 0.5 = 0.5`, while `mr snuggles` and `lasagna` will keep their scores `1.0` and `20.0` (because `mr snuggles` has the property `animal: "cat"`, and because `lasagna` does not even have the animal property).
 
@@ -307,9 +298,8 @@ Quality scores are the ranking mechanism used by blender. Quality scores are cal
 
 A quality score config that define the expression above would look like this:
 
-JSON
-
-`{
+```json JSON
+{
     type: "product",
     product: [
         {
@@ -322,13 +312,12 @@ JSON
         },
     ],
 }
-`
+```
 
 Given the items below:
 
-JSON
-
-`[
+```json JSON
+[
     {
         name: "the cup",
         properties: {
@@ -344,6 +333,6 @@ JSON
         },
     },
 ]
-`
+```
 
 The expression as defined in the quality score config would then yields the scores `0.005 = 0.1 * 0.05` for `the cup`, and `0.08 = 0.1 * 0.8` for `the mug`.

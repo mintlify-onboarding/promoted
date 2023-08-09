@@ -1,8 +1,7 @@
 ---
 title: "Sending Engagements from your server"
+description: "Your servers can log records using Promoted's Metrics API. The [Metrics API accepts LogRequest proto messages as JSON HTTP requests](https://github.com/promotedai/schema/search?q=%22message+LogRequest%22)."
 ---
-
-Your servers can log records using Promoted's Metrics API. The [Metrics API accepts LogRequest proto messages as JSON HTTP requests](https://github.com/promotedai/schema/search?q=%22message+LogRequest%22).
 
 This is useful when:
 
@@ -11,9 +10,8 @@ This is useful when:
 
 Here's an example for logging a purchase to Promoted. The [LogRequest message](https://github.com/promotedai/schema/search?q=%22message+LogRequest%22) supports batch logging records.
 
-Shell
-
-`echo '{  
+```bash Shell
+echo '{  
   "userInfo": {  
     "logUserId": "0ea9657c-bd64-4709-9cc0-fbbcdd8d9f43",
     "userId": "user1"
@@ -46,7 +44,7 @@ Shell
 
 curl -H "Content-Type: application/json" \
     -H "x-api-key: yourapikey" --data "@/tmp/impression.json" http://www.promoted.ai/log
-`
+```
 
 In this example:
 

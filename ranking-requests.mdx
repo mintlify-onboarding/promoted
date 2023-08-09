@@ -101,24 +101,26 @@ Promoted creates the paging key from Request properties such as:
 * blenderConfig
 * properties.
 
-> 🚧
-> 
-> If you have `Request.properties` that will change across page, contact Promoted to exclude them from the paging key
-> 
-> The default behavior is to include all `Request.properties` in the paging key. If a `Request.property` changes across pages (e.g. request timestamp), it'll change the paging key and break paging.
+<Warning>
 
-> 🚧
-> 
-> When a new page is requested from Delivery API, Promoted will try to serve the next best recommendations to that page, regardless of the page number
-> 
-> Example:
-> 
-> * User starts their request on page 10\. Promoted will serve the top results on page 10.
-> * Then the user hops back to page 0\. Promoted will serve the next best items on page 0.
-> 
-> The results for each page are temporarily cached inside Promoted's servers.
-> 
-> If users try to share links to result lists, the items will be different for each user that tries to load the list. Each user gets their own personalized results.
+  **If you have `Request.properties` that will change across page, contact Promoted to exclude them from the paging key**
+
+  The default behavior is to include all `Request.properties` in the paging key. If a `Request.property` changes across pages (e.g. request timestamp), it'll change the paging key and break paging.
+</Warning>
+
+<Warning>
+
+  **When a new page is requested from Delivery API, Promoted will try to serve the next best recommendations to that page, regardless of the page number**
+
+  Example:
+
+    * User starts their request on page 10\. Promoted will serve the top results on page 10.
+    * Then the user hops back to page 0\. Promoted will serve the next best items on page 0.
+
+  The results for each page are temporarily cached inside Promoted's servers.
+
+  If users try to share links to result lists, the items will be different for each user that tries to load the list. Each user gets their own personalized results.
+</Warning>
 
 Promoted can customize paging behavior for your use case. E.g. how long to keep the paged results in the paging DB?
 
@@ -139,9 +141,9 @@ When fully launched, your code will send a large list of request content (insert
 
 Clients start by sending just the first few hundred items to Promoted.
 
-> 📘
-> 
-> Contact Promoted engineers if you want to send additional Request Insertions to Delivery API
+<Tip>
+  Contact Promoted engineers if you want to send additional Request Insertions to Delivery API
+</Tip>
 
 When the `union` config option is enabled, clients can send other blocks of request insertions on other calls to go beyond a few hundred request insertions.
 

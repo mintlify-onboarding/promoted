@@ -6,22 +6,20 @@ title: "Sending Engagements on Web"
 
 * Promoted uses the Snowplow web client for sending records from web browsers to your web proxy.
 * Your web proxy forwards the Snowplow message to our Snowplow-compatible Metric API endpoint.
-1. #  
-Add Snowplow tracker  
+
+## 1. Add Snowplow tracker  
 
 Promoted uses the Snowplow client because it has built-in support for batching, retries and privacy settings. 
 
-Bash
-
-`npm install @snowplow/browser-tracker
+```bash Bash
+npm install @snowplow/browser-tracker
 npm install promoted-snowplow-logger
-`
+```
 
 Add this to a utility file like `promoted.ts`.
 
-TypeScript
-
-`` import { newTracker, trackPageView, trackSelfDescribingEvent } from '@snowplow/browser-tracker';
+```typescript TypeScript
+import { newTracker, trackPageView, trackSelfDescribingEvent } from '@snowplow/browser-tracker';
 import { createEventLogger } from 'promoted-snowplow-logger';
 
 export const promotedLoggingEnabled = false;
@@ -73,19 +71,17 @@ export const eventLogger = createEventLogger({
     logUserId: getAnonymousUserId()
   }),
 });
- ``
+```
 
-1. Create a web proxy endpoint that forwards the Snowplow HTTP requests to Promoted’s Metrics Snowplow API
+## 2. Create a web proxy endpoint that forwards the Snowplow HTTP requests to Promoted’s Metrics Snowplow API
 
----
 
 We recommend platforms host a web endpoint that forwards the Snowplow requests to Promoted’s servers. We recommend the marketplace do this forwarding so (1) you can authenticate/validate events and (2) reduces the chance of the endpoint getting blocked by future browser extensions.
 
 Here is an example using NextJS. You want to serve this depending on `snowplowLoggerUrlPrefix` and `postPath`. E.g. if the logger url is `/logger`, then you'll want to serve this from
 
-JavaScript
-
-`` import axios from 'axios';
+```java JavaScript
+import axios from 'axios';
  
 const snowplowEndpoint = 'https://prod.given.by.promoted.ai/prod/sp'; // From env or config.
 const apiKey = 'PROMOTED_PROD_METRICS_API_KEY'; // From secret store.
@@ -111,20 +107,18 @@ export default async (req, res) => {
   res.statusCode = logResponse.status
   res.json({ status: logResponse.statusText })
 }
- ``
+```
 
 If creating a proxy is a challenge, please sync with the Promoted team. This is easy to do with Nodejs and NextJS servers. If required, it's also possible to log to Promoted by having registering a first party DNS record that sends events to Promoted or use Promoted's URLs directly.
 
-1. #  
-Log Impression and Actions  
+## 3.  Log Impression and Actions  
 * **Impressions** \= When an item is in the viewport long enough to be considered viewed by a user.
 * **Actions** \= When a user acts on something (e.g. clicks on item, links, like, purchase, email sign up, expand into details, etc.).
 
 For web, we have a small [React hook / HOC](https://www.npmjs.com/package/impression-tracker-react-hook) to help log impressions. It uses an Intersection Observer to get notifications about when an item is viewed long enough.
 
-JavaScript
-
-`import { useImpressionTracker } from 'impression-tracker-react-hook';
+```java JavaScript
+import { useImpressionTracker } from 'impression-tracker-react-hook';
 import { eventLogger, handleError } from '../../utils/promoted';
  
 // React Component.
@@ -147,7 +141,8 @@ function Product(props) {
     ...
   </div>;
 }
-`
+```
+
 
 `promoted-snowplow-logger` also supports `logView` and `logAction`.
 
@@ -164,25 +159,23 @@ Promoted might ask you to log Views to:
 
 Example for search page
 
-TypeScript
-
-`eventLogger.logView({
+```typescript TypeScript
+eventLogger.logView({
   name: 'Product search',
   useCase: 'SEARCH',
   searchQuery: 'shoes',
 })
-`
+```
 
 Example for product page
 
-TypeScript
-
-`eventLogger.logView({
+```typescript TypeScript
+eventLogger.logView({
   name: 'Product page',
   useCase: 'CLOSE_UP', // or leave it blank.
   contentId: 'abc',  
 })
-`
+```
 
 The default Snowplow tracker parameters causes the tracker to send Promoted browser fields including user\_agent, url, referrer. If you do not want these fields sent to Promoted, please let Promoted know.
 
@@ -192,9 +185,8 @@ If you have a Single Page Application, you can also move the trackPageView call 
 
 The Snowplow tracker has a way of automatically tracking all links. This does not yet work with custom logUserIds. Here is a code snippet to add to the script tag to enable this.
 
-HTML
-
-`<script type="text/javascript">
+```html HTML
+<script type="text/javascript">
  
     // Optional - enables tracking of links.  Also looks impressionId on <a> tags.
     // This allows us to attribute clicks to impressions.
@@ -238,15 +230,14 @@ HTML
     // Delay setup until after page load.
     window.setTimeout(setupRefresh, 250);
 </script>
-`
+```
 
 Anchor tags that are automatically tracked won’t have impressionIds on them automatically. You will need to add an attribute that enableLinkClickTracking context function resolves.
 
-HTML
-
-`  return <div ref={impressionRef}>
+```html HTML
+  return <div ref={impressionRef}>
     <a href=’blah’ impressionId={impressionId}>
       ...
     </a>
   </div>;
-`
+```

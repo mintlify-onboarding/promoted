@@ -1,0 +1,69 @@
+{
+    "name": "Promoted",
+    "logo": {
+      "light": "/logo/light.png",
+      "dark": "/logo/dark.png"
+    },
+    "favicon": "/favicon.png",
+    "colors": {
+      "primary": "#683AB7",
+      "light": "#9260E7",
+      "dark": "#683AB7"
+    },
+    "topbarCtaButton": {
+      "name": "Contact Us",
+      "url": "https://promoted.ai/#email-form"
+    },
+    "topbarLinks": [
+      {
+        "name": "Developers",
+        "url": "https://promoted.ai/developers"
+      }
+    ],
+    "tabs": [
+      {
+          "name": "API Reference",
+          "url": "api-reference"
+      }
+  ],
+    "navigation": [
+        {
+            "group": "Documentation",
+            "pages": [
+              "getting-started"
+            ]
+          },
+          {
+            "group": "Integration",
+            "pages": [
+              {
+                "group": "How to integrate with Promoted?",
+                "pages": [
+                  "how-to-integrate-with-promoted",
+                  "ranking-requests",
+                  "sending-engagement-signals",
+                  "how-to-your-web-events-with-promoted-metrics",
+                  "sending-engagements-on-ios",
+                  "sending-engagements-from-your-server",
+                  "sending-content-details"
+                ]
+              },
+              "how-to-configure-blender",
+              "metrics-library-for-ios-performance-debugging-using-oslog-and-xray",
+              "debugging-integration-issues"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/server-sdk",
+              "api-reference/client-metrics-sdk"
+            ]
+          }
+    ],
+    "footerSocials":
+      {
+          "linkedin": "https://www.linkedin.com/company/promoted-ai/"
+      }
+  }

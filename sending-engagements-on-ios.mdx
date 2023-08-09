@@ -27,21 +27,19 @@ Promoted adheres to the following philosophies to mitigate risk:
 
 Install the pod `PromotedAIMetricsSDK` in your Podfile. 
 
-podfile
-
-`target 'MyApp' do
+```podfile podfile
+target 'MyApp' do
   pod 'PromotedAIMetricsSDK'
 end
-`
+```
 
 ### Swift Package Manager
 
 Add the following dependency to your Package.swift file.
 
-Swift
-
-`.package(name: "PromotedAIMetricsSDK", url: "https://github.com/promotedai/ios-metrics-sdk")
-`
+```swift Swift
+.package(name: "PromotedAIMetricsSDK", url: "https://github.com/promotedai/ios-metrics-sdk")
+```
 
 This will automatically install `SwiftProtobuf` and `GTMSessionFetcher` as transitive dependencies.
 
@@ -51,8 +49,9 @@ Add a dependency on `@promotedai/react-native-metrics` in your `package.json` fi
 
 In addition to the automated Cocoapod dependencies, we need to add the following line in your `Podfile` manually to work around a build issue.
 
-`pod 'GTMSessionFetcher/Core', '~> 1.5.0', :modular_headers => true
-`
+```
+pod 'GTMSessionFetcher/Core', '~> 1.5.0', :modular_headers => true
+```
 
 This pod is not a new dependency. It’s already included in `PromotedAIMetricsSDK`, but we need to add it to the Podfile to work around a build issue.
 
@@ -60,17 +59,16 @@ This pod is not a new dependency. It’s already included in `PromotedAIMetricsS
 
 Although startup is inexpensive, it may involve network calls and disk IO, so you can choose when this startup occurs.
 
-> 🚧
-> 
-> If you attempt to use the Promoted logging library without configuring it, a runtime error will occur.
+<Warning>
+  If you attempt to use the Promoted logging library without configuring it, a runtime error will occur.
+</Warning>
 
 ### UIKit
 
 Start the MetricsLoggerService during your app’s initialization, before you attempt to perform any logging. You can start the service at any time you wish. A common pattern would be to do this in your AppDelegate’s `application(_:didFinishLaunchingWithOptions:)` method, but you can control the exact time of initialization by deferring this call until after your critical startup path occurs.
 
-TypeScript
-
-`func application(_ app: UIApplication, didFinishLaunchingWithOptions:...) {
+```typescript TypeScript
+func application(_ app: UIApplication, didFinishLaunchingWithOptions:...) {
   let config = ClientConfig()
   config.metricsLoggingURL = "https://..."
   config.metricsLoggingAPIKey = "..."
@@ -78,15 +76,14 @@ TypeScript
   // The following line does most initialization. You decide when to call it.
   self.promotedMetricsLoggerService.startLoggingService()
 }
-`
+```
 
 ### React Native
 
 Installing our NPM dependency will require you to instantiate and configure PromotedMetricsModule, our NativeModule, at app startup. (Explicit configuration is required because of the server URL and API key.) This can be done at app startup, in your AppDelegate’s `application(_:didFinishLaunchingWithOptions:)` method.
 
-Swift
-
-`- (BOOL)application:(UIApplication *)application 
+```swift Swift
+- (BOOL)application:(UIApplication *)application 
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
                                             launchOptions:launchOptions];
@@ -108,13 +105,13 @@ Swift
       [[PromotedMetricsModule alloc] initWithMetricsLoggerService:service];
   return @[ module ];
 }
-`
+```
 
 Since React Native automatically initializes all NativeModules at startup, adding the Promoted dependency alone will cause `PromotedMetricsModule` to be created.
 
-> 🚧
-> 
-> We’re exploring options for clients to configure logging directly from React Native. For now, this configuration must be done in native code.
+<Warning>
+  We’re exploring options for clients to configure logging directly from React Native. For now, this configuration must be done in native code.
+</Warning>
 
 ## Classes
 
@@ -136,28 +133,30 @@ You may choose to make `MetricsLoggerService` a singleton, which makes its corre
 
 You can create multiple instances of the service with different backends if desired. However, you should not create multiple services that point at the same backend.
 
-> 🚧
-> 
-> Use from main thread only.
+<Warning>
+  Use from main thread only.
+</Warning>
 
 #### Example (using instance)
 
-`let service = MetricsLoggerService(initialConfig: ...)
+```
+let service = MetricsLoggerService(initialConfig: ...)
 service.startLoggingServices()
 let logger = service.metricsLogger
 let impressionLogger = service.impressionLogger()
 let scrollTracker = service.scrollTracker(collectionView: ...)
-`
+```
 
 #### Example (using shared service)
 
-`// Call this first before accessing the instance.
+```
+// Call this first before accessing the instance.
 MetricsLoggerService.startServices(initialConfig: ...)
 let service = MetricsLoggerService.shared
 let logger = service.metricsLogger
 let impressionLogger = service.impressionLogger()
 let scrollTracker = service.scrollTracker(collectionView: ...)
-`
+```
 
 ### MetricsLogger
 
@@ -175,20 +174,21 @@ Use one of the `log*` methods to enqueue an event for logging. When the batching
 
 If you want to deliver queued events immediately, say when your app enters the background, use `flush()`. It's not necessary for clients to call `flush()` to deliver queued events. Events are automatically delivered on a timer.
 
-> 🚧
-> 
-> Use from main thread only.
+<Warning>
+  Use from main thread only.
+</Warning>
 
 #### Example
 
-`let logger = service.metricsLogger
+```
+let logger = service.metricsLogger
 // Sets userID and logUserID for subsequent log() calls.
 logger.startSession(userID: myUserID)
 let item = Item(name: "Stuffed Hippo", contentID: "ABCD-1234", insertionID: "XYZ")
 logger.logPurchaseAction(item: purchasedItem)
 // Resets userID and logUserID for another session.
 logger.startSession(userID: secondUserID)
-`
+```
 
 ### ImpressionLogger
 
@@ -204,9 +204,8 @@ Clients should create an instance of `ImpressionLogger` and reference it in thei
 
 #### Example
 
-TypeScript
-
-`class MyViewController: UIViewController {
+```typescript TypeScript
+class MyViewController: UIViewController {
   var collectionView: UICollectionView
   var logger: MetricsLogger
   var impressionLogger: ImpressionLogger
@@ -245,7 +244,7 @@ TypeScript
     impressionLogger.collectionViewDidChangeVisibleContent(visibleContent)
   }
 }
-`
+```
 
 ### ScrollTracker
 
@@ -286,11 +285,11 @@ Profile data from Xray is kept only in memory on the client, and not sent to Pro
 
 ### Performance and Energy
 
-> 🚧
-> 
-> Only use the main thread to interact with the Promoted metrics logging library.
-> 
-> The library offloads many operations to background threads automatically.
+<Warning>
+  **Only use the main thread to interact with the Promoted metrics logging library.**
+
+  The library offloads many operations to background threads automatically.
+</Warning>
 
 #### UIKit
 
@@ -344,9 +343,8 @@ Impression logging for `UICollectionView` is handled automatically using `Scroll
 
 There are two touch points to configure `ScrollTracker`.
 
-TypeScript
-
-`// First, create a ScrollTracker with the collection view.
+```typescript TypeScript
+// First, create a ScrollTracker with the collection view.
 collectionView = UICollectionView()
 scrollTracker = service.scrollTracker(collectionView: collectionView)
 
@@ -391,25 +389,24 @@ for hippo myHippos {
   content.append(content)
 }
 scrollTracker.setFramesFrom(collectionView: hippoCollectionView, content: content)
-`
+```
 
 If you wish to record impressions from multiple collection views in the same scroll view, create one instance of `ScrollTracker` for each collection view.
 
-> 🚧
-> 
-> ScrollTracker performs a linear scan across all its content on a timer.
-> 
-> For this reason, passing an extremely large UICollectionView (more than a few hundred cells) will cause noticeable performance issues. If this is a concern for your app, let us know and we can explore solutions for you.
+<Warning>
 
+  **ScrollTracker performs a linear scan across all its content on a timer.**
+
+  For this reason, passing an extremely large UICollectionView (more than a few hundred cells) will cause noticeable performance issues. If this is a concern for your app, let us know and we can explore solutions for you.
+</Warning>
 #### React Native
 
 Use the `useImpressionLogger()` hook for accurate tracking in `FlatLists` and `SectionLists`. If using some other kind of scroll view, you can use `ScrollTracker` by setting the viewport manually through the `viewport` property when the scroll view updates.
 
 Make sure that the identifier you provide is unique for every list on the same screen.
 
-TypeScript
-
-`import { useImpressionLogger } from "@promotedai/react-native-metrics";
+```typescript TypeScript
+import { useImpressionLogger } from "@promotedai/react-native-metrics";
 
 const {
   _viewabilityConfig, _onViewableItemsChanged 
@@ -420,7 +417,7 @@ const {
 })); 
 
 <SectionList onViewableItemsChanged={handleViewableItemsChanged} ... />
-`
+```
 
 ### View Logging
 
@@ -436,9 +433,8 @@ Promoted needs to sync the state of the `UIViewController` stack before logging 
 
 Use `NavigationContainer` to track the state of views. Promoted’s `useViewTracker()` hook provides handlers for `onReady` and `onChange`. These provide ideal entry points for view logging. 
 
-TypeScript
-
-`import { useImpressionLogger } from "@promotedai/react-native-metrics";
+```typescript TypeScript
+import { useImpressionLogger } from "@promotedai/react-native-metrics";
 
 const navigationRef = useRef();
 const { _onReady, _onStateChange } = useViewTracker(navigationRef);
@@ -449,4 +445,4 @@ const { _onReady, _onStateChange } = useViewTracker(navigationRef);
   onStateChange={_onStateChange}>
   <...>
 </NavigationContainer>
-`
+```
