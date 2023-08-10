@@ -15,9 +15,8 @@ We'll reference these example CMS JSON records in the documentation below.
 
 **Example Item CMS Record**
 
-Example Item CMS Record
-
-`{
+```cs Example Item CMS Record
+{
   "valueScore": {
     "c": 1.8462813912476075,
     "a": 1.2222,
@@ -40,13 +39,12 @@ Example Item CMS Record
   "seasonal_sale_pattern_usa": 0.1,
   "seasonal_sale_pattern_australia": 0.9
 }
-`
+```
 
 **Example User CMS Record**
 
-Example User CMS Record
-
-`{
+```cs Example User CMS Record
+{
   "country": "USA",
   "num_purchases": 34,
   "created_at": "2021-02-10",
@@ -69,7 +67,7 @@ Example User CMS Record
     "Bill Gates"
   ]
 }
-`
+```
 
 #### How Features are Generated per Record
 
@@ -124,7 +122,7 @@ The numeric range is between `1999-12-31 16:00:00` as `946684800[_1000]` and `20
 * `YYYY-MM-DDTHH:MM:SSZ`
 * `YYYY-MM-DD`
 
-### User <> Item Interaction Features
+### User `<>` Item Interaction Features
 
 Interaction features are features that indicate a User and an Item share some relationship and are powerful for fitting high-quality personalization models. For example, you can define a feature for if a User follows the seller who sells a particular item. 
 
@@ -157,13 +155,12 @@ Likewise, the keypath `user_id` is always available in Delivery for use in inter
 
 You can define keypath aliases to generate interaction features. This is useful when it may be infeasible or cumbersome to use the exact same keypath between User and Item CMSs to create interaction features. Or, you may want a one-to-many or many-to-many mapping between keypaths. You can define any mapping using the Interaction Feature endpoint. To use this endpoint, please contact Promoted.
 
-**Example User<>Item Interaction Configuration**
+**Example User`<>`Item Interaction Configuration**
 
 Note that "categories" is not defined because it's already automatically generated due to the same keypaths between the Item and User CMS.
 
-Example User<>Item Interaction Configuration
-
-`{
+```cs Example User<>Item Interaction Configuration
+{
   "user": {
     "status_details.author": "followed_authors",
     "liked.": "content_id"
@@ -175,11 +172,11 @@ Example User<>Item Interaction Configuration
     ]
   }
 }
-`
+```
 
 ### Avoid Collisions Unless Interaction is Intended
 
-Promoted currently only supports User <> Item interaction features from the CMS. Features set on Insertion.Properties are assumed to overwrite or append to features from the Item CMS for the purpose of setting interaction features. This can be used in testing or for prototyping changes.
+Promoted currently only supports User `<>` Item interaction features from the CMS. Features set on Insertion.Properties are assumed to overwrite or append to features from the Item CMS for the purpose of setting interaction features. This can be used in testing or for prototyping changes.
 
 If you do not want automatically-generated interaction features generated between User and Item keypaths, then use unique keypaths in the User and Item CMSs and in all sources, including Request.Properties and Request.Insertion.Properties. Only one keypath will be used to set the corresponding feature (not including the interaction feature) when there are multiple synonymous keypaths from multiple sources. The order of priority for setting the value, from lowest to highest, is:
 

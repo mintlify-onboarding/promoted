@@ -73,8 +73,10 @@
                   "what-types-of-features-does-promoted-support",
                   "how-to-send-features-to-promoted"
                 ]
-              },
-              "promoted-server-side-sdks",
+              }
+            ]
+          },
+          "promoted-server-side-sdks",
               "how-to-run-a-holdback",
               "how-to-read-daily-ml-reports",
               "user-and-item-cms-feature-formats",
@@ -85,8 +87,6 @@
               "estimating-impact-using-the-shadow-tier",
               "search-engineering-qa",
               "index-of-ad-delivery-terms"
-            ]
-          }
             ]
           },
           {
