@@ -1,0 +1,20 @@
+---
+title: "About Content APIs"
+---
+
+Promoted uses all of your data to optimize your marketplace. To send data about **items** (also called "content") and **users** to Promoted efficiently and asynchronously, use the Content API to interact with the Content System Management (CMS).
+
+Send data as **unstructured JSON**. Promoted's systems will automatically transform the data to features appropriate for automated machine learning, use in blending allocation rules, targeting, and reporting. The more data that you send to Promoted, the better Promoted can optimize your marketplace. There is no schema for data that you can send to Promoted. Send us anything and everything.
+
+Promoted recommends the use of the Content APIs, but they are optional in a Promoted integration. Any data sent via the Content API can also be sent directly via the Delivery SDK per delivery request. Sending all data on the Delivery SDK is an expedient method for developer testing or launching an initial integration faster. However, not using the Content API is also less efficient in computation, network bandwidth, and latency. 
+
+The most common integration is to:
+
+1. [Upload a batch of content items, mapped from content id to properties](/reference/upload%5Fcontents)
+2. [Upload a batch of users, mapped from user id to properties](/reference/upload%5Fusers)
+
+The ideal integration with Content API is for your servers to listen to database updates (change data capture or directly in the API) and write out to Content API immediately after the Content or User changes. Promoted has a streaming system so Content updates will be updated immediately in the Delivery system. Fresher data improves the accuracy of our predictions. You can also send writes in daily batches or via a manual script.
+
+### Overriding the CMS for Testing
+
+You can send data first on the Delivery SDK and then later moved that data to the Content API and back without additional configuration. If the same data is available both via the CMS and sent via the Delivery SDK, the Delivery SDK data has priority. Use this behavior for local developer testing without modifying Content API contents. For example: if `price` is a property for an item in the Content CMS, and you want to test if lowering the price for an will change the optimized search results in local testing, you can set `price` for that item's insertion in the Delivery SDK in a test request to Promoted Delivery. The `price` for that item will be unchanged in the Content CMS, and only the corresponding test response will use the lower testing `price`.

@@ -90,11 +90,30 @@
             ]
           },
           {
-            "group": "API Reference",
+            "group": "Legal and Policy",
+            "pages": [
+              {
+                "group": "Privacy and Security FAQs",
+                "pages": [
+                  "promoted-privacy-and-security-faqs",
+                  "gdpr-subprocessor-list"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Delivery & Metrics SDKs",
             "pages": [
               "api-reference/overview",
               "api-reference/server-sdk",
-              "api-reference/client-metrics-sdk"
+              "api-reference/client-metrics-sdk",
+              "api-reference/protobuf-schemas"
+            ]
+          },
+          {
+            "group": "Promoted.AI Content Store",
+            "pages": [
+              "api-reference/about-content-apis"
             ]
           }
     ],
