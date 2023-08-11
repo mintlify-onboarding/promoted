@@ -1,0 +1,252 @@
+openapi: 3.0.1
+info:
+  title: Promoted.ai Content Store
+  version: 1.0.0
+  description: Manage marketplace content for your Promoted.ai integration.
+  contact:
+    name: Promoted.ai
+    url: https://www.promoted.ai
+#servers:
+#- url:
+tags:
+- name: content
+security:
+  - ApiKeyAuth: []
+paths:
+  /v1/content/{content_id}:
+    get:
+      tags:
+      - content
+      summary: Get the properties associated with a single content item by id
+      operationId: get_content
+      parameters:
+      - name: content_id
+        in: path
+        description: The id of content whose properties to retrieve
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successfully retrived properties for the content id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Properties'
+              examples:
+                diner:
+                  summary: A record for a diner.
+                  value: {"city": "Omaha", "state": "NE", "type": "diner", "capacity": 200}
+        404:
+          description: Content id doesn't exist
+          content: {}
+    put:
+      tags:
+      - content
+      summary: Update and replace content properties
+      operationId: update_content
+      parameters:
+      - name: content_id
+        in: path
+        description: The id of the content to add/update/replace
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Properties to associate with this content id, as arbitrary JSON.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Properties'
+            examples:
+              diner:
+                summary: A record for a diner.
+                value: {"city": "Omaha", "state": "NE", "type": "diner", "capacity": 200}
+        required: true
+      responses:
+        200:
+          description: Successfully updated content properties
+          content:
+            application/json:
+              examples:
+                ok:
+                  summary: Success
+                  value: {"message": "Ok"}
+      x-codegen-request-body-name: Properties
+    delete:
+      tags:
+      - content
+      summary: Remove a content item
+      operationId: remove_content
+      parameters:
+      - name: content_id
+        in: path
+        description: The id of the content to remove
+        required: true
+        schema:
+          type: string
+      responses:
+        202:
+          description: Successfully deleted the content properties
+          content:
+            application/json:
+              examples:
+                ok:
+                  summary: Success
+                  value: {"message": "Ok"}
+        404:
+          description: Content id doesn't exist
+          content: {}
+  /v1/content/batch:
+    put:
+      tags:
+      - content
+      summary: Upload a batch of content items, mapped from content id to properties
+      operationId: upload_contents
+      requestBody:
+        description: Map of string content ids to properties
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertiesMap'
+            examples:
+              places:
+                summary: Multiple content records
+                value: {
+                  "234": {"city": "Omaha", "state": "NE", "type": "diner", "capacity": 200},
+                  "678": {"city": "Lincoln", "state": "NE", "type": "cafe", "capacity": 100}
+                }
+      responses:
+        200:
+          description: Successfully inserted/updated the content items' properties
+          content:
+            application/json:
+              examples:
+                ok:
+                  summary: Success
+                  value: {"message": "Ok"}
+  /v1/user/{user_id}:
+    get:
+      tags:
+      - user
+      summary: Get the properties associated with a single user by id
+      operationId: get_user
+      parameters:
+      - name: user_id
+        in: path
+        description: The id of the user whose properties to retrieve
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successfully retrived properties for the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Properties'
+              examples:
+                user:
+                  summary: A record for a user.
+                  value: {"past_purchase_count": 4, "is_active": true}
+        404:
+          description: User doesn't exist
+          content: {}
+    put:
+      tags:
+      - user
+      summary: Update and replace user properties
+      operationId: update_user
+      parameters:
+      - name: user_id
+        in: path
+        description: The id of the user to add/update/replace
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Properties'
+            examples:
+              user:
+                summary: A record for a iser.
+                value: {"past_purchase_count": 4, "is_active": true}
+        required: true
+      responses:
+        200:
+          description: Successfully updated user properties
+          content:
+            application/json:
+              examples:
+                ok:
+                  summary: Success
+                  value: {"message": "Ok"}
+      x-codegen-request-body-name: Properties
+    delete:
+      tags:
+      - user
+      summary: Remove a user
+      operationId: remove_user
+      parameters:
+      - name: user_id
+        in: path
+        description: The id of the user to remove
+        required: true
+        schema:
+          type: string
+      responses:
+        202:
+          description: Successfully deleted the user properties
+          content:
+            application/json:
+              examples:
+                ok:
+                  summary: Success
+                  value: {"message": "Ok"}
+        404:
+          description: User doesn't exist
+          content: {}
+  /v1/user/batch:
+    put:
+      tags:
+      - user
+      summary: Upload a batch of users, mapped from user id to properties
+      operationId: upload_users
+      requestBody:
+        description: Map of string user ids to properties
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertiesMap'
+            examples:
+              users:
+                summary: Multiple user records
+                value: {
+                  "1-a": {"past_purchase_count": 4, "is_active": true},
+                  "2-b": {"past_purchase_count": 90, "is_active": false}
+                }
+      responses:
+        200:
+          description: Successfully inserted/updated the users' properties
+          content:
+            application/json:
+              examples:
+                ok:
+                  summary: Success
+                  value: {"message": "Ok"}
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    PropertiesMap:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/Properties'
+    Properties:
+      type: object
+      additionalProperties: true

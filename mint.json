@@ -10,6 +10,9 @@
       "light": "#9260E7",
       "dark": "#683AB7"
     },
+    "api": {
+      "baseUrl": "https://www.promoted.ai"
+    },
     "topbarCtaButton": {
       "name": "Contact Us",
       "url": "https://promoted.ai/#email-form"
@@ -113,7 +116,20 @@
           {
             "group": "Promoted.AI Content Store",
             "pages": [
-              "api-reference/about-content-apis"
+              "api-reference/about-content-apis",
+              {
+                "group": "Content",
+                "pages": [
+                  "api-reference/content/get-content",
+                  "api-reference/content/update-content",
+                  "api-reference/content/patch-content"
+                ]
+              },
+              {
+                "group": "user",
+                "pages": [
+                ]
+              }
             ]
           }
     ],
