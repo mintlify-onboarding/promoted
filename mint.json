@@ -122,12 +122,23 @@
                 "pages": [
                   "api-reference/content/get-content",
                   "api-reference/content/update-content",
-                  "api-reference/content/patch-content"
+                  "api-reference/content/patch-content",
+                  "api-reference/content/delete-content",
+                  "api-reference/content/upload-contents",
+                  "api-reference/content/merge-contents",
+                  "api-reference/content/query-contents"
                 ]
               },
               {
                 "group": "user",
                 "pages": [
+                  "api-reference/user/get-user",
+                  "api-reference/user/update-user",
+                  "api-reference/user/patch-user",
+                  "api-reference/user/remove-user",
+                  "api-reference/user/upload-users",
+                  "api-reference/user/merge-users",
+                  "api-reference/user/query-users"
                 ]
               }
             ]
