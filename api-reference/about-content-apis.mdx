@@ -10,8 +10,8 @@ Promoted recommends the use of the Content APIs, but they are optional in a Prom
 
 The most common integration is to:
 
-1. [Upload a batch of content items, mapped from content id to properties](/reference/upload%5Fcontents)
-2. [Upload a batch of users, mapped from user id to properties](/reference/upload%5Fusers)
+1. [Upload a batch of content items, mapped from content id to properties](/api-reference/content/upload-contents)
+2. [Upload a batch of users, mapped from user id to properties](/api-reference/users/upload-users)
 
 The ideal integration with Content API is for your servers to listen to database updates (change data capture or directly in the API) and write out to Content API immediately after the Content or User changes. Promoted has a streaming system so Content updates will be updated immediately in the Delivery system. Fresher data improves the accuracy of our predictions. You can also send writes in daily batches or via a manual script.
 

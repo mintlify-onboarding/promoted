@@ -1,15 +1,15 @@
 ---
 title: "API Overview"
-description: "When possible, use the Promoted SDKs instead of the APIs directly. Delivery and Metrics APIs use Protobuf schemas, which are open source. See the Promoted Protobuf Schema Github Repo for detailed and exact technical API documentation for Delivery and Metrics."
+description: "When possible, use the Promoted SDKs instead of the APIs directly. Delivery and Metrics APIs use Protobuf schemas, which are open source. See the [Promoted Protobuf Schema Github Repo](https://github.com/promotedai/schema) for detailed and exact technical API documentation for Delivery and Metrics."
 ---
 
 
 | API                     | Description                                   | Where to use?                                                                                      |
 |-------------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------|
-| Delivery API            | Matches content to the requesting user.       | Instead of calling the API directly, use the server-side SDKs.                                     |
-| Metrics API             | Used to log records to Promoted.              | In your proxy FE logging call, send batches of log records to Metrics API.                         |
-| Content API             | Sending Content and User data asynchronously. | - After database writes (change data capture). <br /> - At the end of your mutate API calls. <br /> - Batch cron |
-| Manager API - Prototype | CRUD on Manager entities                      | Limited alpha access only. If you want to use, please contact Promoted.                            |
+| Delivery API            | Matches content to the requesting user.       | Instead of calling the API directly, use the [server-side SDKs](/api-reference/server-sdk).                                     |
+| Metrics API             | Used to log records to Promoted.              | In your [proxy FE logging call](/how-to-your-web-events-with-promoted-metrics), send batches of log records to Metrics API.                         |
+| [Content API](api-reference/about-content-apis.mdx)             | Sending Content and User data asynchronously. | - After database writes (change data capture). <br /> - At the end of your mutate API calls. <br /> - Batch cron |
+| Manager API - [Prototype](http://promotedai-web.s3-website.us-east-2.amazonaws.com/manager-graphql/) | CRUD on Manager entities                      | Limited alpha access only. If you want to use, please contact Promoted.                            |
 
 ## API Interface
 The easiest way to send messages to Promoted APIs is to send JSON over HTTP. The API servers convert the JSON to a Protocol Buffers representation. Some services support sending Protocol Buffer bytes to reduce latencies.

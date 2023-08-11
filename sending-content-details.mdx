@@ -5,7 +5,7 @@ description: "Goal: Promoted wants to learn using your content details"
 
 ![259](/images/7ee9694-content.svg "content.svg")
 
-Promoted allows unstructured JSON to be uploaded per string ID key using [Content API](/reference/content-api) OpenAPI 3\. This allows **item (or content)** and user data to be batch uploaded to bootstrap then incrementally updated in an event-based system. While all information could technically be sent on every Delivery API request, this is wasteful, and not all information may be available in the customer system that calls Delivery API. Promoted makes all information uploaded to the CMS available for production feature engineering, blending rules, and targeting with a few seconds of latency.
+Promoted allows unstructured JSON to be uploaded per string ID key using [Content API](/api-reference/content-api) OpenAPI 3\. This allows **item (or content)** and user data to be batch uploaded to bootstrap then incrementally updated in an event-based system. While all information could technically be sent on every Delivery API request, this is wasteful, and not all information may be available in the customer system that calls Delivery API. Promoted makes all information uploaded to the CMS available for production feature engineering, blending rules, and targeting with a few seconds of latency.
 
 The downside is that our machine learning system will learn on whatever data you send to the CMS, so if you stop sending that data or change the structure of the JSON you send to the CMS, your models may produce poor results due to missing expected features until they learn the new data structure.
 
