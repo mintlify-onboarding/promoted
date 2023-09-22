@@ -40,7 +40,7 @@ Promoted does not always have an insertion ID for impressions and clicks to dedu
 
 The deduplication key is:
 
-`(insertionID, contentID, logUserID, viewType, viewID, cacheBuster)`
+`(insertionID, contentID, anonUserID, viewType, viewID, cacheBuster)`
 
 If the Promoted SDKs are correctly and fully installed, then insertionID is sufficient to deduplicate. Otherwise, other IDs may be used to deduplicate. In very rare cases, if there is no insertionID, there may be multiple impressions with the same join key due to limits in time processing.
 

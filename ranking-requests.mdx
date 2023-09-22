@@ -11,31 +11,24 @@ In order to rank Content , your API server needs to call Promoted's Delivery API
 
 ## How to integrate?
 
-The Promoted server-side SDK is called in your API server after ranked your own list of content. [Click here for reasons about why we have a server-side SDK?](/promoted-server-side-sdks) 
+The Promoted server-side SDK is called in your API server after ranked your own list of content. [Click here for reasons about why we have a server-side SDK?](/docs/promoted-server-side-sdks) 
 
 The main inputs to the SDKs are a list of Request and a list of Insertion candidates.
 
 * **Request** \= A request for a list of content. E.g. search, feed, related items. [Protocol Buffer definition](https://github.com/promotedai/schema/blob/main/proto/delivery/delivery.proto#L17)
 * **Insertion** \= A content candidate when processing a Request. We start with more potential Request Insertions and narrow down to a subset of Response Insertions to return to the UI. Insertions are different from Impressions because Insertions might not get viewed.
 
-We have 3 server client libraries. More detailed integration instructions can be found in each SDK docs.
-
-<Card title="Typescript" icon="code" icontype="duotone" href="https://github.com/promotedai/promoted-ts-client">
-</Card>
-<Card title="Ruby" icon="gem" icontype="duotone" href="https://github.com/promotedai/promoted-ruby-client/">
-</Card>
-<Card title="Java" icon="js" icontype="duotone" href="https://github.com/promotedai/promoted-java-delivery-client">
-</Card>
+We have Delivery client libraries in multiple languages. Examples: [Typescript](https://github.com/promotedai/promoted-ts-client), [Python](https://github.com/promotedai/promoted-python-delivery-client), [Ruby](https://github.com/promotedai/promoted-ruby-client/), [Java](https://github.com/promotedai/promoted-java-delivery-client). More detailed integration instructions can be found in each SDK docs.
 
 Here is an example code block for Typescript.
 
-```typescript TypeScript
+```Typescript TypeScript
 static async promotedDeliver(req: any, products: Product[], res: Response) {
   const responsePromise = promotedClient.deliver({
     // onlyLog: true - if you want to only log to Promoted.
     request: {
       userInfo: {
-        logUserId: req.logUserId,
+        anonUserId: req.anonUserId,
       },
       useCase: 'FEED', // Supports other enum values like 'SEARCH' and 'DISCOVER'.
       // TODO - add `query` for the search query.
@@ -82,7 +75,7 @@ Example fields to pass in:
 * Dynamic price.
 * Dynamic UI badges.
 
-See [How to send features to Promoted?](/how-to-send-features-to-promoted) for explanations on how to send data to Promoted.
+See [How to send features to Promoted?](/docs/how-to-send-features-to-promoted) for explanations on how to send data to Promoted.
 
 Data that impacts ranking either needs to be passed in using:
 
@@ -93,11 +86,25 @@ It’s possible to pass stable item or user features on this call but it’s bet
 
 ## How does paging works?
 
+### Overview
+
+1. Clients do their own retrieval. They narrow many candidates down to the top N (e.g. 300-500) to send into Promoted's SDK. These few hundred candidates are called Request Insertions.
+2. Delivery SDK (either in the SDK or Delivery API) will narrow down to a smaller page of items. These are Response Insertions. They are specified using `Request.paging.offset` and `Request.paging.size`.
+![](/images/9aec55a-Screenshot_2023-09-16_at_10.03.54_PM.png) 
+
+For this case:
+
+* `paging.offset = 0`\- Indicates which position to return as the first insertion in the `Response.insertion` list.
+* `paging.size = 50`\- The size of the response page size. Similar to `limit` in `select` statements.
+* `retrievalInsertionOffset = 0` \- This is described down below if you want to send a different subset of insertions to Promoted's SDK.
+
+### How are recently served response insertions cached?
+
 When Delivery API receives a Request, the API will request to a paging key and check a database of recently (paged) response Insertion. This allows Promoted to return already paged items back to the user if they request the same pages again.
 
 Promoted creates the paging key from Request properties such as:
 
-* logUserId
+* anonUserId
 * clientInfo
 * useCase
 * searchQuery
@@ -106,19 +113,19 @@ Promoted creates the paging key from Request properties such as:
 
 <Warning>
 
-  **If you have `Request.properties` that will change across page, contact Promoted to exclude them from the paging key**
+  If you have `Request.properties` that will change across page, contact Promoted to exclude them from the paging key
 
   The default behavior is to include all `Request.properties` in the paging key. If a `Request.property` changes across pages (e.g. request timestamp), it'll change the paging key and break paging.
 </Warning>
 
 <Warning>
 
-  **When a new page is requested from Delivery API, Promoted will try to serve the next best recommendations to that page, regardless of the page number**
+  When a new page is requested from Delivery API, Promoted will try to serve the next best recommendations to that page, regardless of the page number
 
   Example:
 
-    * User starts their request on page 10\. Promoted will serve the top results on page 10.
-    * Then the user hops back to page 0\. Promoted will serve the next best items on page 0.
+  * User starts their request on page 10\. Promoted will serve the top results on page 10.
+  * Then the user hops back to page 0\. Promoted will serve the next best items on page 0.
 
   The results for each page are temporarily cached inside Promoted's servers.
 
@@ -127,69 +134,33 @@ Promoted creates the paging key from Request properties such as:
 
 Promoted can customize paging behavior for your use case. E.g. how long to keep the paged results in the paging DB?
 
-### When `Request.insertion.contentId`s change across pages?
+### What happens if the list of`Request.insertion` changes across requests?
 
-Promoted has two options:
+There's a couple common reasons for this to happen:
 
-1. (default) `Intersection` \- If already paged `contentId`s are not in the current`Request.insertion.contentId` list, the missing `contentId`s will be dropped.
-2. `Union` \- Already paged `contentId`s will still be returned even if they are not in `Request.insertion.contentId`s. This option can be used to grow the list of contentIds across multiple Requests.
+* Some retrieval systems won't return consistent results across calls. Caching is hard.
+* Item statuses change. Items can be added or removed from search results during a session.
+
+Promoted has a configuration option that defines how Promoted handles subsequent Responses where previously delivered `contentIds` are now missing from `Request.insertion` lists with the same paging key.
+
+1. (default) `Intersection` \- Missing `Request.insertion.contentId`s are excluded from the response. This can be used to remove missing items.
+2. `Union` \- Delivery will still return the `contentId` even though the `contentId` is no longer in `Request.insertion` s. This option can be used to grow the list of contentIds across multiple Requests.
 
 Promoted also has a setting for how long to keep recent pages. This setting defaults to around 30 minutes.
 
-### Prepaged vs Unpaged SDK option
+### How to send more insertions than the top few hundred?
 
-When fully launched, your code will send a large list of request content (insertions) to Promoted. We call this `unpaged`. The value `UNPAGED` must be passed into the SDK call. During the early logging mode, it's possible to log a `prepaged` list of response items to Promoted. This helps speed up integrations since your servers probably already have a paged list of items.
-
-### Sending even more request insertions
-
-Clients start by sending just the first few hundred items to Promoted.
-
-<Tip>
+<Note>
   Contact Promoted engineers if you want to send additional Request Insertions to Delivery API
-</Tip>
+</Note>
+Different windows of retrieval candidates can be sent to Promoted's SDK. The window is specified using the `retrieval_insertion_offset` parameter. The `union` config option needs to be enabled.
 
-When the `union` config option is enabled, clients can send other blocks of request insertions on other calls to go beyond a few hundred request insertions.
+![](/images/8f752af-Screenshot_2023-09-16_at_9.56.22_PM.png) 
 
-The union This tells Delivery API to consider both request insertions and already returned response insertions.
+For this case:
 
-Here are variables that define these:
+* `Request.paging.offset = 550`\- The starting index.
+* `Request.paging.size = 50`\- The response page size
+* `retrievalInsertionOffset = 500` \- The starting index of the window of retrieval insertions being passed into the SDK.
 
-* `paging.size` \= the size of the response page.
-* `paging.offset` \= the start index of the item in the response. This is a zero-based position for all request insertions.
-* `insertionStart` \= the start index of the `Request.insertion` block inside the list of all request insertions.
-
-To simplify the code and handling falling back to the SDK, we recommend sending the `insertionStart` block that where `offset` would be in the block.
-
-#### Example 1: returning the third page of 10 items from the first block of request insertions
-
-Let's say there are 10k possible candidates (all request insertions).
-
-![](/images/7e74fef-large9999.png)
-
-Due to possible latency issues, the client only sends a subset of Request insertions on Delivery API calls (e.g. 500 request insertions).
-
-![](/images/d6249fa-small499.png)
-
-Send the following values to Promoted
-
-* `Request.insertion` \= the first 500 items.
-* `insertionStart` \= 0 = the position of `Request.insertion` in the list of all Request insertions.
-* `paging.size` \= 10 = size of the response page
-* `paging.offset` \= 20 = this is the starting index of the third page in all request insertions list.
-
-#### Example 2: items 600 to 609
-
-To get this page, we recommend sending the second block request insertions to Promoted.
-
-![](/images/11c02ae-small999.png)
-
-Send the following values to Promoted
-
-* `Request.insertion` \= the second block of 500 items.
-* `insertionStart` \= 500 = the position of this block of request insertions.
-* `paging.size` \= 10 = the size of the response page
-* `paging.offset` \= 600 = the global item position that you want to return
-
-Delivery API will keep recent response insertions in a DB and reuse them when requested. With the `union` option, new candidates will be considered for new pages.
-
-If a Delivery API call fails, the SDK will use the parameters to fetch a range from the input request insertions. For this example, the SDK will fallback to returning the `[100,109)` from the request insertions. This corresponds to the positions of `[600,609)` in the list of all possible candidates.
+Delivery API will cache bot the earlier range of`[0, 500)` insertions and the additional `[500, 999)`insertions.

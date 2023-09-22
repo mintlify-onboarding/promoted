@@ -17,15 +17,14 @@ description: "When you want to evaluate Promoted's impact, you can run a holdbac
 Here is an example in Typescript. Similar code exists in the other server-side SDKs.
 
 ```typescript TypeScript
- // Create a small config indicating the experiment is a 50-50 experiment where 10% of the users are activated.
+// Create a small config indicating the experiment is a 50-50 experiment where 10% of the users are activated.
 const experimentConfig = twoArmExperimentConfig5050("promoted-v1", 5, 5);
 
 async function callPromoted(
     products: Product[],
     userInfo: UserInfo): Promise<Insertion[]> {
 
-  // logUserId is the anonymous user id from the request.
-  const experimentMembership = twoArmExperimentMembership(userInfo.logUserId, experimentConfig);
+  const experimentMembership = twoArmExperimentMembership(userInfo.anonUserId, experimentConfig);
 
   const responsePromise = promotedClient.deliver({
     ...
@@ -46,13 +45,13 @@ async function callPromoted(
 Here's an example using 
 
 ```typescript TypeScript
- // Or use your own custom experiment memberships (e.g. `getExperimentActivationAndArm`)
+// Or use your own custom experiment memberships (e.g. `getExperimentActivationAndArm`)
 // and send Promoted:
 // (1) if the user is activated into the experiment and
 // (2) which arm to perform.
 //
 // [boolean, boolean]
-const [experimentActivated, inTreatment] = getExperimentActivationAndArm(experimentName, logUserId);
+const [experimentActivated, inTreatment] = getExperimentActivationAndArm(experimentName, anonUserId);
 
 // Only log if the user is activated into the experiment.
 const experimentMembership = experimentActivated
@@ -73,7 +72,7 @@ Here's a more complex example that supports:
 
 ```typescript TypeScript
 /**
- * @param userInfo { userId, logUserId, isInternalUser }
+ * @param userInfo { userId, anonUserId, isInternalUser }
  * @param overrideOnlyLog If set, skips the experiment and forces the onlyLog option.
  */
 async function callPromoted(
@@ -92,7 +91,7 @@ async function callPromoted(
     // Keep experiment undefined for internal users.
   } else {
     // Normal external user for a call that should run as an experiment.
-    experiment = twoArmExperimentMembership(logUserId, experimentConfig);
+    experiment = twoArmExperimentMembership(anonUserId, experimentConfig);
   }
 
   const responsePromise = promotedClient.deliver({

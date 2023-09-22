@@ -182,11 +182,11 @@ If you want to deliver queued events immediately, say when your app enters the b
 
 ```
 let logger = service.metricsLogger
-// Sets userID and logUserID for subsequent log() calls.
+// Sets userID and anonUserID for subsequent log() calls.
 logger.startSession(userID: myUserID)
 let item = Item(name: "Stuffed Hippo", contentID: "ABCD-1234", insertionID: "XYZ")
 logger.logPurchaseAction(item: purchasedItem)
-// Resets userID and logUserID for another session.
+// Resets userID and anonUserID for another session.
 logger.startSession(userID: secondUserID)
 ```
 

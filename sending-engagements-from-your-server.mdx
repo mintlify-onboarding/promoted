@@ -13,7 +13,7 @@ Here's an example for logging a purchase to Promoted. The [LogRequest message](h
 ```bash Shell
 echo '{  
   "userInfo": {  
-    "logUserId": "0ea9657c-bd64-4709-9cc0-fbbcdd8d9f43",
+    "anonUserId": "0ea9657c-bd64-4709-9cc0-fbbcdd8d9f43",
     "userId": "user1"
   },  
   "action": [  
@@ -26,6 +26,12 @@ echo '{
       "insertionId": "b59b77c7-a55a-4f01-91b5-58a3d4e36876",
       "contentId": "123",
       "impressionId": "cb97da40-1c56-45fc-b8c5-c525c384ae48",
+      "properties": {
+        "struct": {
+          "customKey1": "customValue",
+          "customKey2": 3
+        }
+      },
       "cart": {
         "contents:" [
           {
@@ -48,5 +54,5 @@ curl -H "Content-Type: application/json" \
 
 In this example:
 
-* `logUserId` is the anonymous user ID that matches the other log records. Usually this needs to be plumbed through more code paths.
+* `anonUserId` is the anonymous user ID that matches the other log records. Usually this needs to be plumbed through more code paths.
 * `amountMicros` is the currency amount (e.g. `$`s) multiplied by 1 million. This let's us keep money values as longs.

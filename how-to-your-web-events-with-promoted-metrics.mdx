@@ -65,10 +65,10 @@ export const eventLogger = createEventLogger({
     trackSelfDescribingEvent,
     trackPageView,
   },
-  // Optional - if you have custom anonymous userId.  This overrides the logUserId on calls through eventLogger.
+  // Optional - if you have custom anonymous userId.  This overrides the anonUserId on calls through eventLogger.
   // This does not work with auto tracking. 
   getUserInfo: () => ({
-    logUserId: getAnonymousUserId()
+    anonUserId: getAnonymousUserId()
   }),
 });
 ```
@@ -183,7 +183,7 @@ If you have a Single Page Application, you can also move the trackPageView call 
 
 ## Optional - Automatic Link Tracking
 
-The Snowplow tracker has a way of automatically tracking all links. This does not yet work with custom logUserIds. Here is a code snippet to add to the script tag to enable this.
+The Snowplow tracker has a way of automatically tracking all links. This does not yet work with custom anonUserIds. Here is a code snippet to add to the script tag to enable this.
 
 ```html HTML
 <script type="text/javascript">

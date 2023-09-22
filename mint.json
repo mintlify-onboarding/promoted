@@ -70,13 +70,8 @@
               {
             "group": "Types of ML Features Supported",
             "pages": [
-              {
-                "group": "Tracking",
-                "pages": [
-                  "what-types-of-features-does-promoted-support",
-                  "how-to-send-features-to-promoted"
-                ]
-              }
+              "what-types-of-features-does-promoted-support",
+              "how-to-send-features-to-promoted"
             ]
           },
           "promoted-server-side-sdks",

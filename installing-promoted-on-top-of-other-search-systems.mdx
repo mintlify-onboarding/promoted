@@ -33,17 +33,3 @@ Promoted can extend any in-house or vendor system providing personalization, rec
 **Asynchronous Signal Loading** via the Item and User Content Management System (CMS). Passing user and item data and model scores can be computationally expensive and slow in production. Instead, signals can be loaded into the Promoted CMS from database update hooks, batch jobs, recurring data analytics pipelines, and in-house CMS systems. All signals loaded into the CMS will be made available to Promoted delivery for optimization and blending rules and later for analytics and reporting in our Metrics product. This is much more cost-efficient and typically easier to integrate in most configurations as compared to sending all information in real-time on each Delivery request for Promoted ranking. See [Sending Additional Data to Promoted.ai via the CMS: Explainer video ](https://www.promoted.ai/videos/sending-additional-data-to-promoted-ai) .
 
 **System Replacement**: Promoted may be able to reproduce other personalization or quality systems, or adding other personalization systems in addition to Promoted does not measurably improve the end-user experience over using Promoted alone. In these cases, you may choose to discontinue the use of other personalization, recommendation, and ranking systems to save infrastructure costs, lower end-user latencies, and reduce engineering maintenance costs.
-
-### Case Study: Algolia and TPT
-
-**Background**: TPT ([teacherspayteachers.com](teacherspayteachers.com)) is a two-sided online marketplace for lesson plans. They are the #8th largest private marketplace and do a large fraction of billion dollars in yearly sales. 
-
-**Partnership**: TPT uses Algolia for search ranking and Google Cloud Recommender for personalized recommendations. In the past, TPT has experimented with Algolia’s personalized search re-ranker. In late 2022, Promoted partnered with TPT to personalize and optimize TPT search and recommendations and unify the optimization system to modernize TPT’s existing sponsored search ad product. In addition, Promoted provided metrics and data infrastructure to power self-service seller item search ranking reporting not provided by Algolia, Heap, or Google Analytics.
-
-**Results**: Promoted increased TPT’s revenue and GMV by “over +5%” while increasing total users who purchase and balancing individual seller impact in 2023 Q1\. TPT continues to launch new functionality and optimizations, to be announced later in 2023! TPT continued to use Google Recommender and Algolia. Promoted’s impact was an incremental extension to these systems. Because no system had to be replaced, integration risks were greatly mitigated and business logic migration was eliminated. All existing investments in Algolia could be reused, and gains were strictly incremental.
-
-**References**:
-
-[\[leul@teacherspayteachers.com\]](/cdn-cgi/l/email-protection#cda1a8b8a18db9a8acaea5a8bfbebdacb4b9a8acaea5a8bfbee3aea2a0): PM, Reporting  
-[\[will@teacherspayteachers.com\]](/cdn-cgi/l/email-protection#483f212424083c2d292b202d3a3b3829313c2d292b202d3a3b662b2725): PM, Ads  
-[\[julian@teacherspayteachers.com\]](/cdn-cgi/l/email-protection#771d021b1e161937031216141f12050407160e031216141f1205045914181a): PM, Search

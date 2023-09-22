@@ -23,7 +23,7 @@ Forward engagement signals to your a proxy endpoint in your domain. For web, Pro
 
 Promoted's Impression data model is pretty simple:
 
-* A user identifier like logUserId.
+* A user identifier like anonUserId.
 * Either Insertion ID or Content ID so Promoted can join the Impression with backing Insertion.
 * Timing information.
 
@@ -35,7 +35,7 @@ Promoted provides [SDKs](https://www.promoted.ai/developers) for tracking impres
 
 Our Action data model is also pretty simple:
 
-* A user identifier like logUserId.
+* A user identifier like anonUserId.
 * Either Insertion ID or Content ID so Promoted can join the Impression with backing Insertion.
 * Custom properties depending on the type of Action. E.g. shopping cart information. It's useful to attach properties that might help with debugging or stating your goal. If you want to pass a Feature for our machine learning models, prefer to pass them on the Request and Insertion .
 
